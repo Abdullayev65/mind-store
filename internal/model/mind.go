@@ -13,6 +13,7 @@ type Mind struct {
 	Description *string
 	ParentId    *int
 	Access      *int
+	hashed      bool
 	UpdatedAt   time.Time `bun:",default:now(),notnull"`
 	UpdatedBy   int
 }
