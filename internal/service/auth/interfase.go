@@ -1,4 +1,4 @@
-package user
+package auth
 
 import (
 	"mindstore/internal/object/dto/user"
@@ -8,8 +8,8 @@ import (
 )
 
 type User interface {
-	GetByUsername(c ctx.Ctx, username string) (*model.User, error)
-	GetByEmail(c ctx.Ctx, email string) (*model.User, error)
-	Create(ctx.Ctx, *user.UserCreate) (*model.User, error)
 	GetById(ctx.Ctx, hash.Int) (*model.User, error)
+	GetByEmail(ctx.Ctx, string) (*model.User, error)
+	GetByUsername(ctx.Ctx, string) (*model.User, error)
+	Create(ctx.Ctx, *user.UserCreate) (*model.User, error)
 }
