@@ -2,6 +2,7 @@ package hash
 
 import (
 	"errors"
+	"reflect"
 )
 
 type Int int
@@ -57,6 +58,16 @@ func (i *Int) MarshalJSON() ([]byte, error) {
 
 func (i *Int) UnmarshalJSON(data []byte) error {
 	return i.GoUnmarshal(data)
+}
+
+func (i Int) UnmarshalSetter(data []byte, setter reflect.Value) error {
+	err := i.GoUnmarshal(data)
+	if err != nil {
+		return err
+	}
+
+	setter.SetInt(int64(i))
+	return nil
 }
 
 func isIn2QuotationMark(data []byte) bool {

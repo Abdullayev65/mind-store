@@ -185,13 +185,21 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 
 	// todo  go-summer-dev done
 	{
-		m, ok := value.Interface().(marshaling.Unmarshaler)
-		if ok {
-			err := m.GoUnmarshal([]byte(val))
+		if s, ok := value.Interface().(UnmarshalSetter); ok {
+			err := s.UnmarshalSetter([]byte(val), value)
 			if err != nil {
 				return false, err
 			}
 			return true, nil
+		} else {
+			m, ok := value.Interface().(marshaling.Unmarshaler)
+			if ok {
+				err := m.GoUnmarshal([]byte(val))
+				if err != nil {
+					return false, err
+				}
+				return true, nil
+			}
 		}
 	}
 
