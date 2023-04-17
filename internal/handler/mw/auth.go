@@ -3,21 +3,27 @@ package mw
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"mindstore/internal/object/model"
-	"mindstore/pkg/ctx"
+	"mindstore/pkg/hash-types"
 	. "mindstore/pkg/response"
 	"strings"
 )
 
-func (mw *MiddleWere) UserFromToken(required bool) gin.HandlerFunc {
+func (mw *MiddleWere) UserIdFromToken(required bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			if required {
+				Fail(c, "Authorization header is required")
+				c.Abort()
+			}
+			return
+		}
 
-		user, err := mw.userFromToken(c, authHeader)
+		id, err := mw.userIdFromToken(authHeader)
 
 		if err == nil {
-			c.Set("user", user)
+			c.Set(userIdKey, id)
 		} else if required {
 			FailErr(c, err)
 			c.Abort()
@@ -26,7 +32,7 @@ func (mw *MiddleWere) UserFromToken(required bool) gin.HandlerFunc {
 	}
 }
 
-func (mw *MiddleWere) userFromToken(c ctx.Ctx, authHeader string) (*model.User, error) {
+func (mw *MiddleWere) userIdFromToken(authHeader string) (*hash.Int, error) {
 	fields := strings.Fields(authHeader)
 	switch {
 	case len(fields) == 0:
@@ -41,7 +47,24 @@ func (mw *MiddleWere) userFromToken(c ctx.Ctx, authHeader string) (*model.User, 
 		return nil, err
 	}
 
-	user, err := mw.user.UserById(c, *id)
+	return id, nil
+}
 
-	return user, err
+func (mw *MiddleWere) GetUserId(c *gin.Context) (id *hash.Int, ok bool) {
+	val, exists := c.Get(userIdKey)
+	if !exists {
+		return nil, false
+	}
+
+	id, ok = val.(*hash.Int)
+	return id, ok
+}
+
+func (mw *MiddleWere) MustGetUserId(c *gin.Context) *hash.Int {
+	id, ok := mw.GetUserId(c)
+	if !ok {
+		panic("auth: userId not fount")
+	}
+
+	return id
 }

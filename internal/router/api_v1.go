@@ -13,6 +13,7 @@ func InitApi() *gin.Engine {
 	v1 := r.Group("/api/v1")
 
 	Auth(v1.Group("/auth"))
+	User(v1.Group("/user"))
 
 	return r
 }

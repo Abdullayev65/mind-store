@@ -12,4 +12,5 @@ type User interface {
 	GetByEmail(c ctx.Ctx, email string) (*model.User, error)
 	Create(ctx.Ctx, *user.UserCreate) (*model.User, error)
 	GetById(ctx.Ctx, hash.Int) (*model.User, error)
+	DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error)
 }

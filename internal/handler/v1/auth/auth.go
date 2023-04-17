@@ -2,9 +2,10 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	dtoauth "mindstore/internal/object/dto/auth"
-	dtouser "mindstore/internal/object/dto/user"
+	"mindstore/internal/object/dto/auth"
+	"mindstore/internal/object/dto/user"
 	auth_srvc "mindstore/internal/service/auth"
+	"mindstore/pkg/bind"
 	. "mindstore/pkg/response"
 )
 
@@ -17,15 +18,9 @@ func New(auth *auth_srvc.Service) *Handler {
 }
 
 func (h *Handler) SignUp(c *gin.Context) {
-	data := new(dtouser.UserCreate)
+	input := bind.MustGet[user.UserCreate](c)
 
-	err := c.Bind(data)
-	if err != nil {
-		FailErr(c, err)
-		return
-	}
-
-	err = h.auth.SignUp(c, data)
+	err := h.auth.SignUp(c, input)
 	if err != nil {
 		FailErr(c, err)
 		return
@@ -35,15 +30,9 @@ func (h *Handler) SignUp(c *gin.Context) {
 }
 
 func (h *Handler) LogIn(c *gin.Context) {
-	data := new(dtoauth.LogIn)
+	input := bind.MustGet[auth.LogIn](c)
 
-	err := c.Bind(data)
-	if err != nil {
-		FailErr(c, err)
-		return
-	}
-
-	outPut, err := h.auth.LogIn(c, data)
+	outPut, err := h.auth.LogIn(c, input)
 	if err != nil {
 		FailErr(c, err)
 		return

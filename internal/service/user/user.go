@@ -7,10 +7,11 @@ import (
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/encoder"
 	"mindstore/pkg/hash-types"
+	"mindstore/pkg/util/timeutil"
 )
 
 type Service struct {
-	User
+	User User
 }
 
 func New(user User) *Service {
@@ -49,4 +50,19 @@ func (s *Service) Create(c ctx.Ctx, data *user.UserCreate) (*model.User, error) 
 
 func (s *Service) UserById(c ctx.Ctx, id hash.Int) (*model.User, error) {
 	return s.User.GetById(c, id)
+}
+
+func (s *Service) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {
+	obj, err := s.User.DetailById(c, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	timeutil.Format(obj.BirthDate, &obj.BirthDateStr)
+
+	return obj, nil
 }

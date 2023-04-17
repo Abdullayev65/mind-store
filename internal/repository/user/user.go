@@ -78,6 +78,20 @@ func (r *Repo) GetByEmail(c ctx.Ctx, email string) (*model.User, error) {
 	return r.getBy(c, "email", email)
 }
 
+func (r *Repo) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {
+	o := new(user.UserDetail)
+
+	err := r.DB.GetContext(c, o,
+		`SELECT id, username, email, mind_id, first_name, 
+middle_name, last_name, birth_date FROM users WHERE id=$1`, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return o, nil
+}
+
 //func (r *Repo) filter(f *user.Filter) (*[]model.User, *bun.SelectQuery) {
 //	ms, q := r.Filter(f.Filter)
 //

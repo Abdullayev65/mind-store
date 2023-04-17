@@ -31,7 +31,7 @@ func New(user User) *Service {
 }
 
 func (s *Service) SignUp(c ctx.Ctx, input *user.UserCreate) error {
-	_, err := s.User.Create(c, input)
+	_, err := s.Create(c, input)
 
 	return err
 }

@@ -2,12 +2,13 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"mindstore/internal/handler"
 )
 
 func User(r *gin.RouterGroup) {
-	//h := user.Me
-	//
-	//r.GET("me", h.GetUserMe)
-	//r.PUT("me", h.UpdateUserMe)
+	h := handler.User
+	mw := handler.MW
+
+	r.GET("me", mw.UserIdFromToken(true), h.Me)
 
 }
