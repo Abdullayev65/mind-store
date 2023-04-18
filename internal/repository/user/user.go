@@ -1,11 +1,16 @@
 package user
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"mindstore/internal/object/dto/user"
 	"mindstore/internal/object/model"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
+	"mindstore/pkg/repoutill"
+	"strings"
 )
 
 type Repo struct {
@@ -37,9 +42,9 @@ func (r *Repo) GetById(c ctx.Ctx, id hash.Int) (*model.User, error) {
 }
 
 func (r *Repo) Create(c ctx.Ctx, input *user.UserCreate) (*model.User, error) {
-	res, err := r.DB.NamedExec(`INSERT INTO users(username, email, password, 
+	res, err := r.DB.NamedExecContext(c, `INSERT INTO users(username, email, password, 
 first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :password,
-:first_name, :middle_name, :last_name, :birth_date) RETURNING ID`, input)
+:first_name, :middle_name, :last_name, :birth_date) RETURNING id`, input)
 	if err != nil {
 		return nil, err
 	}
@@ -51,23 +56,55 @@ first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :pass
 	println(id)
 	return nil, nil
 }
+func (r *Repo) CreateWithMind(c ctx.Ctx, input *user.UserCreate) (hash.Int, error) {
+	txx, err := r.DB.BeginTxx(c, &sql.TxOptions{})
+	if err != nil {
+		return 0, err
+	}
+	defer txx.Commit()
 
-func (r *Repo) Update(c ctx.Ctx, data *user.UserUpdate) (*model.User, error) {
-	//m := new(model.User)
-	//
-	//m.Id = *data.Id
-	//SetIfNotNil(m.Username, data.Username)
-	//SetIfNotNil(m.Email, data.Email)
-	//SetIfNotNil(m.HashPassword, data.Password)
-	//SetIfNotNil(m.FirstName, data.FirstName)
-	//SetIfNotNil(m.MiddleName, data.MiddleName)
-	//SetIfNotNil(m.LastName, data.LastName)
-	//SetIfNotNil(m.BirthDate, data.BirthDate)
-	//
-	//err := r.UpdateModel(c, m)
-	//
-	//return m, err
-	return nil, nil
+	res, err := txx.NamedExecContext(c, `INSERT INTO users(username, email, password, 
+first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :password,
+:first_name, :middle_name, :last_name, :birth_date) RETURNING id`, input)
+	if err != nil {
+		txx.Rollback()
+		return 0, err
+	}
+
+	id, err := res.RowsAffected()
+	if err != nil {
+		txx.Rollback()
+		return 0, err
+	}
+
+	res, err = txx.ExecContext(c, `INSERT INTO mind(topic, created_by) 
+VALUES ($1, $2)`, input.Username, id)
+	if err != nil {
+		txx.Rollback()
+		return 0, err
+	}
+
+	return hash.Int(id), nil
+}
+
+func (r *Repo) Update(c ctx.Ctx, input *user.UserUpdate) error {
+	argNum, args, setValues := 1, []any{}, []string{}
+	repoutill.UpdateSetColumn(input.Username, "username", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.Email, "email", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.Password, "password", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.FirstName, "first_name", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.MiddleName, "middle_name", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.LastName, "last_name", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.BirthDate, "birth_date", &setValues, &args, &argNum)
+
+	if argNum == 1 {
+		return errors.New("field not found for updating")
+	}
+	setStr := strings.Join(setValues, " ,")
+	query := fmt.Sprintf(`UPDATE users u SET %s WHERE id= %d AND deleted_at IS NULL`,
+		setStr, input.Id)
+	_, err := r.DB.ExecContext(c, query, args...)
+	return err
 }
 
 func (r *Repo) GetByUsername(c ctx.Ctx, username string) (*model.User, error) {
@@ -110,7 +147,8 @@ middle_name, last_name, birth_date FROM users WHERE id=$1`, id)
 func (r *Repo) getBy(c ctx.Ctx, column string, arg any) (*model.User, error) {
 	m := new(model.User)
 
-	err := r.DB.GetContext(c, m, "SELECT * FROM users WHERE "+column+"= $1", arg)
+	err := r.DB.GetContext(c, m, "SELECT * FROM users WHERE deleted_at IS NULL AND "+
+		column+"= $1, ", arg)
 	if err != nil {
 		return nil, err
 	}

@@ -5,12 +5,13 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"mindstore/internal/router"
+	"mindstore/pkg/config"
 )
 
 func main() {
 	r := router.InitApi()
 
-	log.Fatalln(r.Run(":8765"))
+	log.Fatalln(r.Run(config.GetPort()))
 }
 
 func init() {

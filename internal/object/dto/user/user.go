@@ -18,6 +18,7 @@ type UserCreate struct {
 }
 
 type UserUpdate struct {
+	Id           hash.Int `json:"-" form:"-"`
 	Username     *string
 	Email        *string
 	Password     *string

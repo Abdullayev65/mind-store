@@ -35,6 +35,17 @@ func GetJwtToken() JwtToken {
 	return *config.JwtToken
 }
 
+func GetPort() string {
+	port := config.Port
+	if port == "" {
+		return ":8080"
+	}
+	if port[0] == ':' {
+		return port
+	}
+	return ":" + port
+}
+
 func unmarshalConfig() (*Config, error) {
 	yamlFile, err := os.ReadFile("config.yaml")
 	if err != nil {

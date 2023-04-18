@@ -13,4 +13,9 @@ type User interface {
 	Create(ctx.Ctx, *user.UserCreate) (*model.User, error)
 	GetById(ctx.Ctx, hash.Int) (*model.User, error)
 	DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error)
+	Update(c ctx.Ctx, input *user.UserUpdate) error
+}
+
+type Auth interface {
+	IsValidEmail(email string) bool
 }

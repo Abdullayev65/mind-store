@@ -5,7 +5,6 @@ import (
 	"mindstore/internal/object/dto/auth"
 	"mindstore/internal/object/dto/user"
 	auth_srvc "mindstore/internal/service/auth"
-	"mindstore/pkg/bind"
 	. "mindstore/pkg/response"
 )
 
@@ -17,8 +16,7 @@ func New(auth *auth_srvc.Service) *Handler {
 	return &Handler{auth}
 }
 
-func (h *Handler) SignUp(c *gin.Context) {
-	input := bind.MustGet[user.UserCreate](c)
+func (h *Handler) SignUp(c *gin.Context, input *user.UserCreate) {
 
 	err := h.auth.SignUp(c, input)
 	if err != nil {
@@ -29,9 +27,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 	Success(c, "user created")
 }
 
-func (h *Handler) LogIn(c *gin.Context) {
-	input := bind.MustGet[auth.LogIn](c)
-
+func (h *Handler) LogIn(c *gin.Context, input *auth.LogIn) {
 	outPut, err := h.auth.LogIn(c, input)
 	if err != nil {
 		FailErr(c, err)
