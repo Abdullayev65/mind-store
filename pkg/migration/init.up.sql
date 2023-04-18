@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS mind
 CREATE TABLE IF NOT EXISTS file
 (
     id         BIGSERIAL PRIMARY KEY,
-    path       VARCHAR(40) NOT NULL,
+    name       VARCHAR(30) NOT NULL,
+    path       VARCHAR(50) NOT NULL,
     hashed_id  BIGINT REFERENCES mind (id),
     access     BIGINT      NOT NULL,
     size       BIGINT      NOT NULL,

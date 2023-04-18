@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"mindstore/internal/object/dto/mind"
-	"mindstore/internal/object/dto/user"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/repoutill"
@@ -41,38 +40,40 @@ RETURNING id`, input)
 	return id, nil
 }
 
-func (r *Repo) Update(c ctx.Ctx, input *user.UserUpdate) error {
+func (r *Repo) Update(c ctx.Ctx, input *mind.Update) error {
 	argNum, args, setValues := 1, []any{}, []string{}
-	repoutill.UpdateSetColumn(input.Username, "username", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.Email, "email", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.Password, "password", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.FirstName, "first_name", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.MiddleName, "middle_name", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.LastName, "last_name", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.BirthDate, "birth_date", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.Topic, "topic", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.Caption, "caption", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.ParentId, "parent_id", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.Access, "access", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.HashedId, "hashed_id", &setValues, &args, &argNum)
 
 	if argNum == 1 {
 		return errors.New("field not found for updating")
 	}
 	setStr := strings.Join(setValues, " ,")
-	query := fmt.Sprintf(`UPDATE users SET %s WHERE id= %d AND deleted_at IS NULL`,
-		setStr, input.Id)
+	query := fmt.Sprintf(`UPDATE mind SET %s WHERE id= %d AND deleted_at IS NULL AND created_by=%d`,
+		setStr, input.Id, *input.CreatedBy)
 	_, err := r.DB.ExecContext(c, query, args...)
 	return err
 }
 
-func (r *Repo) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {
-	o := new(user.UserDetail)
+func (r *Repo) ChildrenById(c ctx.Ctx, id hash.Int, getOwnSelf bool) ([]mind.List, error) {
+	list := make([]mind.List, 0, 8)
+	whereOwn := ""
+	if getOwnSelf {
+		whereOwn = "OR id=$1"
+	}
 
-	err := r.DB.GetContext(c, o,
-		`SELECT id, username, email, mind_id, first_name, 
-middle_name, last_name, birth_date FROM users WHERE id=$1`, id)
+	err := r.DB.SelectContext(c, &list,
+		fmt.Sprintf(`SELECT id, topic, caption, parent_id, access, hashed_id FROM mind 
+WHERE parent_id=$1 %s`, whereOwn), id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return o, nil
+	return list, nil
 }
 
 func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {

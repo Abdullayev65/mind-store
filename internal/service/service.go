@@ -1,7 +1,7 @@
 package service
 
 import (
-	"mindstore/internal/repository"
+	repo "mindstore/internal/repository"
 	"mindstore/internal/service/auth"
 	"mindstore/internal/service/mind"
 	"mindstore/internal/service/user"
@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	*Auth = *auth.New(repository.User)
-	*User = *user.New(repository.User, Auth)
-	*Mind = *mind.New(repository.Mind)
+	*Auth = *auth.New(repo.User)
+	*User = *user.New(repo.User, Auth)
+	*Mind = *mind.New(repo.Mind, nil)
 }

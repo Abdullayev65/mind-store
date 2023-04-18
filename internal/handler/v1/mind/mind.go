@@ -27,3 +27,15 @@ func (h *Handler) CreateMind(c *gin.Context, input *mind.Create) {
 
 	Success(c, &id)
 }
+
+func (h *Handler) UpdateMind(c *gin.Context, input *mind.Update) {
+	input.CreatedBy = h.authMW.MustGetUserId(c)
+
+	err := h.mind.UpdateMind(c, input)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, "OK")
+}
