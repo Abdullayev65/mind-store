@@ -14,6 +14,7 @@ func InitApi() *gin.Engine {
 
 	Auth(v1.Group("/auth"))
 	User(v1.Group("/user"))
+	Mind(v1.Group("/mind"))
 
 	return r
 }

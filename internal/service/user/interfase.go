@@ -14,6 +14,7 @@ type User interface {
 	GetById(ctx.Ctx, hash.Int) (*model.User, error)
 	DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error)
 	Update(c ctx.Ctx, input *user.UserUpdate) error
+	Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error
 }
 
 type Auth interface {

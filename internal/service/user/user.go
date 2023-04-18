@@ -11,24 +11,25 @@ import (
 )
 
 type Service struct {
-	User User
-	Auth Auth
+	user User
+	auth Auth
 }
 
-func New(user User) *Service {
+func New(user User, auth Auth) *Service {
 	n := new(Service)
 
-	n.User = user
+	n.user = user
+	n.auth = auth
 
 	return n
 }
 
 func (s *Service) UserById(c ctx.Ctx, id hash.Int) (*model.User, error) {
-	return s.User.GetById(c, id)
+	return s.user.GetById(c, id)
 }
 
 func (s *Service) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {
-	obj, err := s.User.DetailById(c, id)
+	obj, err := s.user.DetailById(c, id)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func (s *Service) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) 
 func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 	var errStr string
 	switch {
-	case input.Email != nil && (!s.Auth.IsValidEmail(*input.Email)):
+	case input.Email != nil && (!s.auth.IsValidEmail(*input.Email)):
 		errStr = "email is not valid"
 	case input.Username != nil && (len(*input.Username) < 3 || len(*input.Username) > 26):
 		errStr = "username length should be between 3 and 26"
@@ -63,5 +64,9 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 
 	timeutil.Parse(input.BirthDateStr, &input.BirthDate)
 
-	return s.User.Update(c, input)
+	return s.user.Update(c, input)
+}
+
+func (s *Service) Delete(c ctx.Ctx, userId, deletedBy hash.Int) error {
+	return s.user.Delete(c, userId, deletedBy)
 }

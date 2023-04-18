@@ -57,13 +57,13 @@ first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :pass
 	return nil, nil
 }
 func (r *Repo) CreateWithMind(c ctx.Ctx, input *user.UserCreate) (hash.Int, error) {
-	txx, err := r.DB.BeginTxx(c, &sql.TxOptions{})
+	txx, err := r.DB.BeginTxx(c, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return 0, err
 	}
 	defer txx.Commit()
 
-	res, err := txx.NamedExecContext(c, `INSERT INTO users(username, email, password, 
+	res, err := txx.NamedQuery(`INSERT INTO users(username, email, password, 
 first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :password,
 :first_name, :middle_name, :last_name, :birth_date) RETURNING id`, input)
 	if err != nil {
@@ -71,14 +71,27 @@ first_name, middle_name, last_name, birth_date) VALUES (:username, :email, :pass
 		return 0, err
 	}
 
-	id, err := res.RowsAffected()
+	if !res.Next() {
+		txx.Rollback()
+		return 0, errors.New("500")
+	}
+	var id int64
+	err = res.Scan(&id)
+	res.Close()
+	if err != nil {
+		return 0, err
+	}
+
+	var mindId int64
+	err = txx.QueryRowx(`INSERT INTO mind(topic, created_by, access) 
+VALUES ($1, $2, 99) RETURNING id`, "root", id).Scan(&mindId)
 	if err != nil {
 		txx.Rollback()
 		return 0, err
 	}
 
-	res, err = txx.ExecContext(c, `INSERT INTO mind(topic, created_by) 
-VALUES ($1, $2)`, input.Username, id)
+	_, err = txx.ExecContext(c, `UPDATE users SET mind_id = $1 WHERE id=$2`,
+		mindId, id)
 	if err != nil {
 		txx.Rollback()
 		return 0, err
@@ -101,7 +114,7 @@ func (r *Repo) Update(c ctx.Ctx, input *user.UserUpdate) error {
 		return errors.New("field not found for updating")
 	}
 	setStr := strings.Join(setValues, " ,")
-	query := fmt.Sprintf(`UPDATE users u SET %s WHERE id= %d AND deleted_at IS NULL`,
+	query := fmt.Sprintf(`UPDATE users SET %s WHERE id= %d AND deleted_at IS NULL`,
 		setStr, input.Id)
 	_, err := r.DB.ExecContext(c, query, args...)
 	return err
@@ -129,7 +142,17 @@ middle_name, last_name, birth_date FROM users WHERE id=$1`, id)
 	return o, nil
 }
 
-//func (r *Repo) filter(f *user.Filter) (*[]model.User, *bun.SelectQuery) {
+func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {
+	_, err := r.DB.ExecContext(c, `UPDATE users SET deleted_at = now(), deleted_by = $1
+	 WHERE id = $2`, deletedBy, userId)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+//func (r *Repo) filter(f *user.Filter) (*[]model.user, *bun.SelectQuery) {
 //	ms, q := r.Filter(f.Filter)
 //
 //	if f.Username != nil {
@@ -148,7 +171,7 @@ func (r *Repo) getBy(c ctx.Ctx, column string, arg any) (*model.User, error) {
 	m := new(model.User)
 
 	err := r.DB.GetContext(c, m, "SELECT * FROM users WHERE deleted_at IS NULL AND "+
-		column+"= $1, ", arg)
+		column+"= $1 ", arg)
 	if err != nil {
 		return nil, err
 	}

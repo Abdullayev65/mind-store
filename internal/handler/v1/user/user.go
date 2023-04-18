@@ -39,3 +39,15 @@ func (h *Handler) UserUpdate(c *gin.Context, input *user.UserUpdate) {
 
 	Success(c, "DONE")
 }
+
+func (h *Handler) UserDelete(c *gin.Context) {
+	userId := *h.authMW.MustGetUserId(c)
+
+	err := h.user.Delete(c, userId, userId)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, "DELETED")
+}
