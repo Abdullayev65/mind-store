@@ -152,19 +152,6 @@ func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {
 	return err
 }
 
-//func (r *Repo) filter(f *user.Filter) (*[]model.user, *bun.SelectQuery) {
-//	ms, q := r.Filter(f.Filter)
-//
-//	if f.Username != nil {
-//		WhereGroupAnd(q, "username = ?", *f.Username)
-//	}
-//	if f.Email != nil {
-//		WhereGroupAnd(q, "email = ?", *f.Email)
-//	}
-//
-//	return ms, q
-//}
-
 // specific functions
 
 func (r *Repo) getBy(c ctx.Ctx, column string, arg any) (*model.User, error) {

@@ -34,3 +34,8 @@ type List struct {
 	Files    []file.List
 	Children []List
 }
+
+type ChildrenFilter struct {
+	MindId hash.Int
+	UserId *hash.Int
+}

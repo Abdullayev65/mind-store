@@ -11,5 +11,5 @@ type FileData struct {
 	Name     string
 	HashedId *int
 	Access   int
-	Size     int
+	Size     int64
 }

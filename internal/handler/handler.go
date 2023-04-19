@@ -19,5 +19,5 @@ func init() {
 	*MW = *mw.New(service.Auth)
 	*Auth = *auth.New(service.Auth)
 	*User = *user.New(service.User, MW)
-	*Mind = *mind.New(service.Mind, MW)
+	*Mind = *mind.New(MW, service.Mind, service.File)
 }

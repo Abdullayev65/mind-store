@@ -18,6 +18,26 @@ func (i Int) I64() int64 {
 func (i Int) I32() int32 {
 	return int32(i)
 }
+func (i Int) HashToStr() string {
+	encode, err := hashInt.Encode(int(i))
+	if err != nil {
+		return ""
+	}
+	return string(encode)
+}
+func (i *Int) UnhashStr(hashStr string) error {
+	if i == nil {
+		return errors.New("hash.Int: i can't be nil")
+	}
+
+	decode, err := hashInt.Decode([]byte(hashStr))
+	if err != nil {
+		return err
+	}
+
+	*i = Int(decode)
+	return nil
+}
 
 func (i *Int) GoMarshal() ([]byte, error) {
 	if i == nil {

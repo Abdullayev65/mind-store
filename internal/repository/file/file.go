@@ -1,13 +1,17 @@
-package mind
+package file
 
 import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"mindstore/internal/object/dto/file"
 	"mindstore/internal/object/dto/mind"
+	"mindstore/internal/object/model"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/repoutill"
+	"mindstore/pkg/stream"
+	"strconv"
 	"strings"
 )
 
@@ -19,25 +23,40 @@ func New(db *sqlx.DB) *Repo {
 	return &Repo{db}
 }
 
-func (r *Repo) Create(c ctx.Ctx, input *mind.Create) (*hash.Int, error) {
-	res, err := r.DB.NamedQueryContext(c, `INSERT INTO mind(topic, caption, parent_id, access, 
-hashed_id, created_by) VALUES (:topic, :caption, :parent_id, :access, :hashed_id, :created_by) 
-RETURNING id`, input)
+func (r *Repo) CreateWithMind(c ctx.Ctx, files []*model.FileData, mindId hash.Int) (err error) {
+	query, args, err := r.DB.BindNamed(`INSERT INTO file(path, name, hashed_id, access, size,
+created_by) VALUES (:path, :name, :hashed_id, :access, :size, :created_by) RETURNING id`, &files)
 	if err != nil {
-		return nil, err
-	}
-	defer res.Close()
-
-	if !res.Next() {
-		return nil, errors.New("500")
-	}
-	id := new(hash.Int)
-	err = res.Scan(id)
-	if err != nil {
-		return nil, err
+		return errors.Join(errors.New("500: "), err)
 	}
 
-	return id, nil
+	tx, err := r.DB.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+		tx.Commit()
+	}()
+
+	err = tx.SelectContext(c, files, query, args)
+	if err != nil {
+		return err
+	}
+
+	mindFiles := stream.Mapper(files, func(f *model.FileData) *model.MindFile {
+		return &model.MindFile{MindId: mindId, FileId: f.Id}
+	})
+
+	_, err = r.DB.NamedExecContext(c, `INSERT INTO mind_file(mind_id, file_id) 
+VALUES (:mind_id, :file_id)`, &mindFiles)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Repo) Update(c ctx.Ctx, input *mind.Update) error {
@@ -58,19 +77,22 @@ func (r *Repo) Update(c ctx.Ctx, input *mind.Update) error {
 	return err
 }
 
-func (r *Repo) ChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter, getOwnSelf bool) ([]mind.List, error) {
-	list := make([]mind.List, 0, 8)
-	whereOwn, createdBy := "", 0
-	if getOwnSelf {
-		whereOwn = "OR id=$1"
-	}
-	if filter.UserId != nil {
-		createdBy = int(*filter.UserId)
+func (r *Repo) GetByMindIds(c ctx.Ctx, mindIds []hash.Int) ([]file.List, error) {
+	if len(mindIds) == 0 {
+		return []file.List{}, nil
 	}
 
+	mindIdsStr := stream.Mapper(mindIds, func(i hash.Int) string {
+		return strconv.Itoa(int(i))
+	})
+	mindIdsIn := strings.Join(mindIdsStr, ",")
+
+	list := make([]file.List, 0, len(mindIds))
+
 	err := r.DB.SelectContext(c, &list,
-		fmt.Sprintf(`SELECT id, topic, caption, parent_id, access, hashed_id FROM mind 
-WHERE parent_id=$1 %s AND (created_by=$2 OR access = 99)`, whereOwn), filter.MindId, createdBy)
+		fmt.Sprintf(`SELECT mf.mind_id, f.id,f.name,f.hashed_id,f.access,f.size FROM file f
+INNER JOIN mind_file mf on f.id = mf.file_id
+WHERE mf.deleted_at IS NULL AND mf.mind_id IN (%s) ORDER BY mind_id, f.id DESC`, mindIdsIn))
 
 	if err != nil {
 		return nil, err

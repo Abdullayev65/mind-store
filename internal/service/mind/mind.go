@@ -2,7 +2,6 @@ package mind
 
 import (
 	"errors"
-	"mindstore/internal/object/dto/file"
 	"mindstore/internal/object/dto/mind"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
@@ -33,7 +32,7 @@ func (s *Service) CreateMind(c ctx.Ctx, input *mind.Create) (*hash.Int, error) {
 	}
 
 	if input.Access != 33 && input.Access != 99 {
-		input.Access = 33
+		input.Access = 99
 	}
 
 	return s.mind.Create(c, input)
@@ -54,8 +53,8 @@ func (s *Service) UpdateMind(c ctx.Ctx, input *mind.Update) error {
 	return s.mind.Update(c, input)
 }
 
-func (s *Service) ChildrenById(c ctx.Ctx, id hash.Int) ([]mind.List, error) {
-	mindList, err := s.mind.ChildrenById(c, id, false)
+func (s *Service) ChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter) ([]mind.List, error) {
+	mindList, err := s.mind.ChildrenById(c, filter, false)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +62,8 @@ func (s *Service) ChildrenById(c ctx.Ctx, id hash.Int) ([]mind.List, error) {
 	return mindList, s.setFilesToMinds(c, mindList)
 }
 
-func (s *Service) WithChildrenById(c ctx.Ctx, id hash.Int) (*mind.List, error) {
-	mindList, err := s.mind.ChildrenById(c, id, true)
+func (s *Service) WithChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter) (*mind.List, error) {
+	mindList, err := s.mind.ChildrenById(c, filter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func (s *Service) WithChildrenById(c ctx.Ctx, id hash.Int) (*mind.List, error) {
 	children := make([]mind.List, 0, len(mindList)-1)
 
 	stream.ForEach(mindList, func(list mind.List) {
-		if list.Id == id {
+		if list.Id == filter.MindId {
 			root = &list
 		} else {
 			children = append(children, list)
@@ -94,14 +93,10 @@ func (s *Service) setFilesToMinds(c ctx.Ctx, mindList []mind.List) error {
 		return m.Id
 	})
 
-	fileList, err := s.file.GetByMindIds(c, mindIds)
+	fileMap, err := s.file.GetByMindIds(c, mindIds)
 	if err != nil {
 		return err
 	}
-
-	fileMap := stream.SliceToMap(fileList, func(f file.List) hash.Int {
-		return f.MindId
-	})
 
 	stream.ForEach(mindList, func(list mind.List) {
 		list.Files = fileMap[list.Id]

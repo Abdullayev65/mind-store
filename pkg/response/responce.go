@@ -12,6 +12,15 @@ func Success(c *gin.Context, res any) {
 	})
 }
 
+func Response[T any](c *gin.Context, t T, err error) {
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, t)
+}
+
 func Fail(c *gin.Context, msg string) {
 	json200(c, map[string]interface{}{
 		"status": false,

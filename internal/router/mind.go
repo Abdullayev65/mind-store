@@ -12,8 +12,15 @@ func Mind(r *gin.RouterGroup) {
 
 	r.POST("/", mw.UserIdFromToken(true), bind.Binder(h.CreateMind))
 	r.PUT("/", mw.UserIdFromToken(true), bind.Binder(h.UpdateMind))
-	//r.GET("/children/:parent_mind_id", mw.UserIdFromToken(true), h.GetMindChildren("parent_mind_id", false))
-	//r.GET("/with-children/:parent_mind_id", mw.UserIdFromToken(true), h.GetMindChildren("parent_mind_id", true))
+
+	r.GET("/children/:parent_mind_id", mw.UserIdFromToken(false),
+		h.GetMindChildren("parent_mind_id", false))
+
+	r.GET("/with-children/:parent_mind_id", mw.UserIdFromToken(false),
+		h.GetMindChildren("parent_mind_id", true))
+
+	r.POST("/add-file/:mind_id", mw.UserIdFromToken(true), bind.Binder(h.AddFile))
+	r.DELETE("/delete-file", mw.UserIdFromToken(true), h.DeleteFile)
 
 	//r.DELETE("me", mw.UserIdFromToken(true), h.UserDelete)
 

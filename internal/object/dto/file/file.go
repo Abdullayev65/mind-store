@@ -1,6 +1,9 @@
 package file
 
-import "mindstore/pkg/hash-types"
+import (
+	"mime/multipart"
+	"mindstore/pkg/hash-types"
+)
 
 type List struct {
 	Id       hash.Int
@@ -10,4 +13,16 @@ type List struct {
 	HashedId *int
 	Access   int
 	Size     int
+}
+
+type CreateWithMind struct {
+	Files     []*multipart.FileHeader
+	CreatedBy *hash.Int `form:"-"`
+	MindId    *hash.Int
+	Access    int
+}
+
+type MindFile struct {
+	MindId hash.Int
+	FileId hash.Int
 }
