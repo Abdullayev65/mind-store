@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"mindstore/internal/object/dto/file"
-	"mindstore/internal/object/dto/mind"
 	"mindstore/internal/object/model"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
-	"mindstore/pkg/repoutill"
 	"mindstore/pkg/stream"
 	"strconv"
 	"strings"
@@ -24,57 +22,38 @@ func New(db *sqlx.DB) *Repo {
 }
 
 func (r *Repo) CreateWithMind(c ctx.Ctx, files []*model.FileData, mindId hash.Int) (err error) {
+	fs := stream.Mapper(files, func(in *model.FileData) model.FileData {
+		return *in
+	})
 	query, args, err := r.DB.BindNamed(`INSERT INTO file(path, name, hashed_id, access, size,
-created_by) VALUES (:path, :name, :hashed_id, :access, :size, :created_by) RETURNING id`, &files)
+created_by) VALUES (:path, :name, :hashed_id, :access, :size, :created_by) RETURNING id;`, fs)
 	if err != nil {
 		return errors.Join(errors.New("500: "), err)
 	}
 
-	tx, err := r.DB.Beginx()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-		tx.Commit()
-	}()
-
-	err = tx.SelectContext(c, files, query, args)
+	err = r.DB.SelectContext(c, &fs, query, args...)
 	if err != nil {
 		return err
 	}
 
-	mindFiles := stream.Mapper(files, func(f *model.FileData) *model.MindFile {
+	for i, f := range fs {
+		files[i].Id = f.Id
+	}
+
+	mindFiles := stream.Mapper(fs, func(f model.FileData) *model.MindFile {
 		return &model.MindFile{MindId: mindId, FileId: f.Id}
 	})
 
 	_, err = r.DB.NamedExecContext(c, `INSERT INTO mind_file(mind_id, file_id) 
-VALUES (:mind_id, :file_id)`, &mindFiles)
+VALUES (:mind_id, :file_id)`, mindFiles)
 	if err != nil {
+		stream.ForEach(fs, func(f model.FileData) {
+			r.DB.Exec(`DELETE FROM file WHERE id=$1`, f.Id)
+		})
 		return err
 	}
 
 	return nil
-}
-
-func (r *Repo) Update(c ctx.Ctx, input *mind.Update) error {
-	argNum, args, setValues := 1, []any{}, []string{}
-	repoutill.UpdateSetColumn(input.Topic, "topic", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.Caption, "caption", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.ParentId, "parent_id", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.Access, "access", &setValues, &args, &argNum)
-	repoutill.UpdateSetColumn(input.HashedId, "hashed_id", &setValues, &args, &argNum)
-
-	if argNum == 1 {
-		return errors.New("field not found for updating")
-	}
-	setStr := strings.Join(setValues, " ,")
-	query := fmt.Sprintf(`UPDATE mind SET %s WHERE id= %d AND deleted_at IS NULL AND created_by=%d`,
-		setStr, input.Id, *input.CreatedBy)
-	_, err := r.DB.ExecContext(c, query, args...)
-	return err
 }
 
 func (r *Repo) GetByMindIds(c ctx.Ctx, mindIds []hash.Int) ([]file.List, error) {
@@ -101,45 +80,62 @@ WHERE mf.deleted_at IS NULL AND mf.mind_id IN (%s) ORDER BY mind_id, f.id DESC`,
 	return list, nil
 }
 
-func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {
-	_, err := r.DB.ExecContext(c, `UPDATE users SET deleted_at = now(), deleted_by = $1
-	 WHERE id = $2`, deletedBy, userId)
+func (r *Repo) Delete(c ctx.Ctx, input *file.DeleteMind) (err error) {
+	mfs := make([]model.MindFile, 0)
+	err = r.DB.SelectContext(c, &mfs, `SELECT mf.mind_id FROM mind_file mf
+JOIN file f on f.id = mf.file_id
+WHERE f.deleted_at IS NULL AND mf.deleted_at IS NULL AND
+f.id=$1 AND f.created_by=$2`, input.FileId, input.UserId)
+
 	if err != nil {
 		return err
+	}
+
+	hasMindFile := stream.AnyMatch(mfs, func(mf model.MindFile) bool {
+		return mf.MindId == input.MindId
+	})
+	if !hasMindFile {
+		return errors.New("mind_file not fount")
+	}
+
+	tx, err := r.DB.Beginx()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	_, err = tx.ExecContext(c, `UPDATE mind_file SET deleted_at=now()
+WHERE mind_id=$1 AND file_id=$2`, input.MindId, input.FileId)
+	if err != nil {
+		return err
+	}
+
+	if len(mfs) == 1 {
+		_, err = tx.ExecContext(c, `UPDATE file SET deleted_at=now(), deleted_by=$1
+WHERE id=$2`, input.DeletedBy, input.FileId)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
 }
 
-//func (r *Repo) filter(f *user.Filter) (*[]model.user, *bun.SelectQuery) {
-//	ms, q := r.Filter(f.Filter)
-//
-//	if f.Username != nil {
-//		WhereGroupAnd(q, "username = ?", *f.Username)
-//	}
-//	if f.Email != nil {
-//		WhereGroupAnd(q, "email = ?", *f.Email)
-//	}
-//
-//	return ms, q
-//}
+func (r *Repo) GetPathById(c ctx.Ctx, fileId, userId hash.Int) (path string, err error) {
+	f := new(model.FileData)
+	err = r.DB.GetContext(c, f, `SELECT path FROM file
+WHERE deleted_at IS NULL AND id=$1 AND (access == 99 OR created_by=$2)`, fileId, userId)
 
-//func (r *Repo) GetAll(c ctx.Ctx, f *user.Filter) ([]model.User, int, error) {
-//	//ms, query := r.filter(f)
-//	//
-//	//count, err := query.ScanAndCount(c)
-//	//
-//	//return *ms, count, err
-//	return nil, 0, nil
-//}
-//
-//func (r *Repo) GetById(c ctx.Ctx, id hash.Int) (*model.User, error) {
-//	m := new(model.Mind)
-//
-//	err := r.DB.GetContext(c, m, "SELECT * FROM users WHERE id= $1", id)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return m, nil
-//}
+	if err != nil {
+		return "", err
+	}
+
+	return f.Path, nil
+}

@@ -2,12 +2,12 @@ package file
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"io"
 	"mime/multipart"
 	"mindstore/internal/object/model"
 	"mindstore/pkg/stream"
 	"os"
+	"time"
 )
 
 type SystemFile struct{}
@@ -18,10 +18,10 @@ func NewSystemFile() *SystemFile {
 
 func (s *SystemFile) Upload(file *multipart.FileHeader, folder string) (string, error) {
 	if file == nil {
-		return "", errors.New("file.Upload: file is null")
+		return "", errors.New("Files.Upload: Files is null")
 	}
 
-	filename := uuid.New().String()
+	filename := s.makeName(file.Filename)
 
 	if _, err := os.Stat("./files/" + folder); errors.Is(err, os.ErrNotExist) {
 		err = os.MkdirAll("./files/"+folder, os.ModePerm)
@@ -111,4 +111,9 @@ func (s *SystemFile) MultipleUploadFile(files []*multipart.FileHeader, folder st
 	}
 
 	return
+}
+
+func (s *SystemFile) makeName(filename string) string {
+	now := time.Now().Format("06.01.02.15.04.05.")
+	return now + filename
 }

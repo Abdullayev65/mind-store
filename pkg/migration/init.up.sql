@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS mind
 CREATE TABLE IF NOT EXISTS file
 (
     id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(30) NOT NULL,
-    path       VARCHAR(50) NOT NULL,
+    name       VARCHAR(63) NOT NULL,
+    path       VARCHAR(127) NOT NULL,
     hashed_id  BIGINT REFERENCES mind (id),
     access     BIGINT      NOT NULL,
     size       BIGINT      NOT NULL,
@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS mind_file
     deleted_at TIMESTAMP,
     PRIMARY KEY (mind_id, file_id)
 );
+CREATE UNIQUE INDEX mind_file_ui__mind_id__file_id ON mind_file
+    USING btree (mind_id, file_id) WHERE (deleted_at IS NULL);
+
 
 ALTER TABLE users
     ADD FOREIGN KEY (mind_id) REFERENCES mind (id)

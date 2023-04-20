@@ -31,3 +31,12 @@ func ForEach[T any](objs []T, fun func(T)) {
 		fun(obj)
 	}
 }
+
+func AnyMatch[T any](objs []T, matcher func(T) bool) bool {
+	for _, obj := range objs {
+		if matcher(obj) {
+			return true
+		}
+	}
+	return false
+}

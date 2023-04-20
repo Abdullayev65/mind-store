@@ -12,22 +12,22 @@ import (
 )
 
 type Service struct {
-	file    File
+	iFile
 	sysFile SysFile
 }
 
-func New(file File, sysFile SysFile) *Service {
+func New(file iFile, sysFile SysFile) *Service {
 	return &Service{file, sysFile}
 }
 
-func (s *Service) CreateWithMind(c ctx.Ctx, input *file.CreateWithMind) ([]*model.FileData, error) {
+func (s *Service) CreateWithMind(c ctx.Ctx, input *file.CreateWithMind) ([]*file.List, error) {
 	var errStr string
 	switch {
 	case input.CreatedBy == nil:
 		errStr = "owner not found"
 	case input.MindId == nil:
 		errStr = "mind_id can't be null"
-	case input.Files == nil || len(input.Files) == 0:
+	case len(input.Files) == 0:
 		errStr = "file not given"
 	}
 	if errStr != "" {
@@ -48,16 +48,21 @@ func (s *Service) CreateWithMind(c ctx.Ctx, input *file.CreateWithMind) ([]*mode
 		f.Access = input.Access
 	})
 
-	err = s.file.CreateWithMind(c, files, *input.MindId)
+	err = s.iFile.CreateWithMind(c, files, *input.MindId)
 	if err != nil {
 		return nil, err
 	}
 
-	return files, nil
+	list := make([]*file.List, len(files))
+	for i, f := range files {
+		list[i] = f.MapToList()
+	}
+
+	return list, nil
 }
 
 func (s *Service) GetByMindIds(c ctx.Ctx, mindIds []hash.Int) (map[hash.Int][]file.List, error) {
-	fileList, err := s.file.GetByMindIds(c, mindIds)
+	fileList, err := s.iFile.GetByMindIds(c, mindIds)
 	if err != nil {
 		return nil, err
 	}

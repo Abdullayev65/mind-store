@@ -7,12 +7,12 @@ import (
 
 type List struct {
 	Id       hash.Int
-	MindId   hash.Int
+	MindId   hash.Int `json:",omitempty"`
 	Url      string
 	Name     string
 	HashedId *int
 	Access   int
-	Size     int
+	Size     int64
 }
 
 type CreateWithMind struct {
@@ -25,4 +25,11 @@ type CreateWithMind struct {
 type MindFile struct {
 	MindId hash.Int
 	FileId hash.Int
+}
+
+type DeleteMind struct {
+	MindId    hash.Int
+	FileId    hash.Int
+	UserId    hash.Int
+	DeletedBy hash.Int
 }

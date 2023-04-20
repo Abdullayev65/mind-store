@@ -89,6 +89,20 @@ func (h *Handler) AddFile(c *gin.Context, input *file.CreateWithMind) {
 	Success(c, dto)
 }
 
-func (h *Handler) DeleteFile(c *gin.Context) {
-	//todo
+func (h *Handler) DeleteFile(c *gin.Context, input *file.DeleteMind) {
+	if input.FileId == 0 || input.MindId == 0 {
+		Fail(c, "file_id and mind_id is required")
+		return
+	}
+
+	userId := h.authMW.MustGetUserId(c)
+	input.UserId = *userId
+	input.DeletedBy = *userId
+	err := h.file.Delete(c, input)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, "DELETED")
 }
