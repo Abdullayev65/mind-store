@@ -131,7 +131,7 @@ WHERE id=$2`, input.DeletedBy, input.FileId)
 func (r *Repo) GetPathById(c ctx.Ctx, fileId, userId hash.Int) (path string, err error) {
 	f := new(model.FileData)
 	err = r.DB.GetContext(c, f, `SELECT path FROM file
-WHERE deleted_at IS NULL AND id=$1 AND (access == 99 OR created_by=$2)`, fileId, userId)
+WHERE deleted_at IS NULL AND id=$1 AND (access = 99 OR created_by=$2)`, fileId, userId)
 
 	if err != nil {
 		return "", err

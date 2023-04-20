@@ -52,7 +52,7 @@ func (s *SystemFile) Upload(file *multipart.FileHeader, folder string) (string, 
 		return "err", err
 	}
 
-	return dst[1:], nil
+	return dst, nil
 }
 
 func (s *SystemFile) Delete(dst string) error {
