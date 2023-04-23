@@ -28,7 +28,7 @@ type List struct {
 	Id       hash.Int
 	Topic    *string
 	Caption  *string
-	ParentId *int
+	ParentId *hash.Int
 	Access   int
 	HashedId *int
 	Files    []file.List

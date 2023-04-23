@@ -63,3 +63,4 @@ CREATE UNIQUE INDEX mind_file_ui__mind_id__file_id ON mind_file
 ALTER TABLE users
     ADD FOREIGN KEY (mind_id) REFERENCES mind (id),
     ADD FOREIGN KEY (avatar_id) REFERENCES file (id);
+

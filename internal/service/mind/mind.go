@@ -3,9 +3,11 @@ package mind
 import (
 	"errors"
 	"mindstore/internal/object/dto/mind"
+	"mindstore/pkg/config"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/stream"
+	"path"
 )
 
 type Service struct {
@@ -98,9 +100,15 @@ func (s *Service) setFilesToMinds(c ctx.Ctx, mindList []mind.List) error {
 		return err
 	}
 
-	stream.ForEach(mindList, func(list mind.List) {
-		list.Files = fileMap[list.Id]
-	})
+	for _, files := range fileMap {
+		for i, _ := range files {
+			files[i].Url = path.Join(config.GetFilesBaseUrl(), files[i].Id.HashToStr())
+		}
+	}
+
+	for i, _ := range mindList {
+		mindList[i].Files = fileMap[mindList[i].Id]
+	}
 
 	return nil
 }
