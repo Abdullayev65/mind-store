@@ -56,6 +56,24 @@ VALUES (:mind_id, :file_id)`, mindFiles)
 	return nil
 }
 
+func (r *Repo) Create(c ctx.Ctx, input *model.FileData) (err error) {
+	if input.Access == 0 {
+		input.Access = 99
+	}
+	query, args, err := r.DB.BindNamed(`INSERT INTO file(path, name, hashed_id, access, size,
+created_by) VALUES (:path, :name, :hashed_id, :access, :size, :created_by) RETURNING id;`, input)
+	if err != nil {
+		return errors.Join(errors.New("500: "), err)
+	}
+
+	err = r.DB.GetContext(c, input, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Repo) GetByMindIds(c ctx.Ctx, mindIds []hash.Int) ([]file.List, error) {
 	if len(mindIds) == 0 {
 		return []file.List{}, nil
@@ -132,6 +150,19 @@ func (r *Repo) GetPathById(c ctx.Ctx, fileId, userId hash.Int) (path string, err
 	f := new(model.FileData)
 	err = r.DB.GetContext(c, f, `SELECT path FROM file
 WHERE deleted_at IS NULL AND id=$1 AND (access = 99 OR created_by=$2)`, fileId, userId)
+
+	if err != nil {
+		return "", err
+	}
+
+	return f.Path, nil
+}
+
+func (r *Repo) GetAvatarPathByUserId(c ctx.Ctx, userId hash.Int) (path string, err error) {
+	f := new(model.FileData)
+	err = r.DB.GetContext(c, f, `SELECT f.path FROM file f
+JOIN users u on f.id = u.avatar_id
+WHERE f.deleted_at IS NULL AND u.deleted_at IS NULL AND u.id=$1 AND access = 99`, userId)
 
 	if err != nil {
 		return "", err

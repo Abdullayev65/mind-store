@@ -109,6 +109,7 @@ func (r *Repo) Update(c ctx.Ctx, input *user.UserUpdate) error {
 	repoutill.UpdateSetColumn(input.MiddleName, "middle_name", &setValues, &args, &argNum)
 	repoutill.UpdateSetColumn(input.LastName, "last_name", &setValues, &args, &argNum)
 	repoutill.UpdateSetColumn(input.BirthDate, "birth_date", &setValues, &args, &argNum)
+	repoutill.UpdateSetColumn(input.AvatarId, "avatar_id", &setValues, &args, &argNum)
 
 	if argNum == 1 {
 		return errors.New("field not found for updating")
@@ -133,7 +134,7 @@ func (r *Repo) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {
 
 	err := r.DB.GetContext(c, o,
 		`SELECT id, username, email, mind_id, first_name, 
-middle_name, last_name, birth_date FROM users WHERE id=$1`, id)
+middle_name, last_name, birth_date, avatar_id FROM users WHERE id=$1`, id)
 
 	if err != nil {
 		return nil, err

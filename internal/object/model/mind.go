@@ -2,6 +2,7 @@ package model
 
 import (
 	"mindstore/internal/object/model/submodel"
+	"mindstore/pkg/hash-types"
 	"time"
 )
 
@@ -12,7 +13,7 @@ type Mind struct {
 	Caption   *string
 	ParentId  *int
 	Access    int
-	HashedId  *int
+	HashedId  *hash.Int
 	UpdatedAt time.Time
 }
 

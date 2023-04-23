@@ -15,6 +15,7 @@ type User struct {
 	MiddleName *string
 	LastName   *string
 	BirthDate  *time.Time
+	AvatarId   *hash.Int
 	// hidden fields
 	CreatedBy *int
 	DeletedBy *int

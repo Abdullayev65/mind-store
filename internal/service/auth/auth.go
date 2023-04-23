@@ -45,8 +45,8 @@ func (s *Service) SignUp(c ctx.Ctx, input *user.UserCreate) error {
 		errStr = "username length should be between 3 and 26"
 	case input.Password == nil:
 		errStr = "password is required"
-	case len(*input.Password) < 3 || len(*input.Password) > 30:
-		errStr = "password length should be between 3 and 30"
+	case len(*input.Password) < 1 || len(*input.Password) > 30:
+		errStr = "password length should be between 1 and 30"
 	case input.FirstName == nil:
 		errStr = "first_name is required"
 	}

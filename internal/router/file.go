@@ -10,4 +10,5 @@ func File(r *gin.RouterGroup) {
 	mw := handler.MW
 
 	r.GET("/:id", mw.UserIdFromToken(false), h.GetFile)
+	r.GET("/avatar/:user_id", h.GetAvatar)
 }

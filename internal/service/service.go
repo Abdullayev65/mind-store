@@ -18,7 +18,7 @@ var (
 
 func init() {
 	*Auth = *auth.New(repo.User)
-	*User = *user.New(repo.User, Auth)
+	*User = *user.New(repo.User, Auth, SystemFile, repo.File)
 	*Mind = *mind.New(repo.Mind, File)
 	*File = *file.New(repo.File, SystemFile)
 	*SystemFile = *file.NewSystemFile()

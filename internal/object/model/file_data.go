@@ -20,7 +20,7 @@ type FileData struct {
 func (f *FileData) MapToList() *file.List {
 	return &file.List{
 		Id:       f.Id,
-		Url:      path.Join(config.GetFilesBaseUrl(), "mind-file", f.Id.HashToStr()),
+		Url:      path.Join(config.GetFilesBaseUrl(), f.Id.HashToStr()),
 		Name:     f.Name,
 		HashedId: f.HashedId,
 		Access:   f.Access,

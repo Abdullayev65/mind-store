@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users
     middle_name VARCHAR(16),
     last_name   VARCHAR(20),
     birth_date  TIMESTAMP,
+    avatar_id   BIGINT,
 --
     created_by  BIGINT,
     deleted_by  BIGINT,
@@ -35,13 +36,13 @@ CREATE TABLE IF NOT EXISTS mind
 CREATE TABLE IF NOT EXISTS file
 (
     id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(63) NOT NULL,
+    name       VARCHAR(63)  NOT NULL,
     path       VARCHAR(127) NOT NULL,
     hashed_id  BIGINT REFERENCES mind (id),
-    access     BIGINT      NOT NULL,
-    size       BIGINT      NOT NULL,
+    access     BIGINT       NOT NULL,
+    size       BIGINT       NOT NULL,
 --
-    created_at TIMESTAMP   NOT NULL DEFAULT now(),
+    created_at TIMESTAMP    NOT NULL DEFAULT now(),
     deleted_at TIMESTAMP,
     created_by BIGINT REFERENCES users (id),
     deleted_by BIGINT REFERENCES users (id)
@@ -60,4 +61,5 @@ CREATE UNIQUE INDEX mind_file_ui__mind_id__file_id ON mind_file
 
 
 ALTER TABLE users
-    ADD FOREIGN KEY (mind_id) REFERENCES mind (id)
+    ADD FOREIGN KEY (mind_id) REFERENCES mind (id),
+    ADD FOREIGN KEY (avatar_id) REFERENCES file (id);

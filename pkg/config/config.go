@@ -48,7 +48,7 @@ func GetPort() string {
 }
 
 func GetFilesBaseUrl() string {
-	return filepath.Join(config.BaseUrl, "/api/v1/files/")
+	return filepath.Join(config.BaseUrl, "/api/v1/file/")
 }
 
 func unmarshalConfig() (*Config, error) {

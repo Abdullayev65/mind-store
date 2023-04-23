@@ -4,22 +4,28 @@ import (
 	"errors"
 	"mindstore/internal/object/dto/user"
 	"mindstore/internal/object/model"
+	"mindstore/pkg/config"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/encoder"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/util/timeutil"
+	"path"
 )
 
 type Service struct {
-	user User
-	auth Auth
+	user       User
+	auth       Auth
+	systemFile SysFile
+	file       File
 }
 
-func New(user User, auth Auth) *Service {
+func New(user User, auth Auth, systemFile SysFile, file File) *Service {
 	n := new(Service)
 
 	n.user = user
 	n.auth = auth
+	n.systemFile = systemFile
+	n.file = file
 
 	return n
 }
@@ -35,6 +41,10 @@ func (s *Service) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) 
 	}
 
 	timeutil.Format(obj.BirthDate, &obj.BirthDateStr)
+	if obj.AvatarId != nil {
+		url := path.Join(config.GetFilesBaseUrl(), "avatar", obj.Id.HashToStr())
+		obj.AvatarUrl = &url
+	}
 
 	return obj, nil
 }
@@ -46,8 +56,8 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 		errStr = "email is not valid"
 	case input.Username != nil && (len(*input.Username) < 3 || len(*input.Username) > 26):
 		errStr = "username length should be between 3 and 26"
-	case input.Password != nil && (len(*input.Password) < 3 || len(*input.Password) > 30):
-		errStr = "password length should be between 3 and 30"
+	case input.Password != nil && (len(*input.Password) < 1 || len(*input.Password) > 30):
+		errStr = "password length should be between 1 and 30"
 	}
 	if errStr != "" {
 		return errors.New(errStr)
@@ -60,6 +70,18 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 		}
 
 		input.Password = &password
+	}
+	if input.Avatar != nil {
+		fileData, err := s.systemFile.UploadFile(input.Avatar, "avatar")
+		if err != nil {
+			return err
+		}
+		fileData.CreatedBy = input.Id
+		err = s.file.Create(c, fileData)
+		if err != nil {
+			return err
+		}
+		input.AvatarId = &fileData.Id
 	}
 
 	timeutil.Parse(input.BirthDateStr, &input.BirthDate)

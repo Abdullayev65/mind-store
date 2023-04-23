@@ -1,6 +1,7 @@
 package user
 
 import (
+	"mime/multipart"
 	"mindstore/internal/object/dto/user"
 	"mindstore/internal/object/model"
 	"mindstore/pkg/ctx"
@@ -19,4 +20,12 @@ type User interface {
 
 type Auth interface {
 	IsValidEmail(email string) bool
+}
+
+type SysFile interface {
+	UploadFile(file *multipart.FileHeader, folder string) (*model.FileData, error)
+}
+
+type File interface {
+	Create(c ctx.Ctx, input *model.FileData) (err error)
 }

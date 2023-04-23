@@ -13,6 +13,7 @@ type iFile interface {
 	GetByMindIds(c ctx.Ctx, mindIds []hash.Int) ([]file.List, error)
 	Delete(c ctx.Ctx, input *file.DeleteMind) (err error)
 	GetPathById(c ctx.Ctx, fileId, userId hash.Int) (path string, err error)
+	GetAvatarPathByUserId(c ctx.Ctx, userId hash.Int) (path string, err error)
 }
 
 type SysFile interface {

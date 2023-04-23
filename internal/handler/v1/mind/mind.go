@@ -33,8 +33,13 @@ func (h *Handler) CreateMind(c *gin.Context, input *mind.Create) {
 
 func (h *Handler) UpdateMind(c *gin.Context, input *mind.Update) {
 	input.CreatedBy = h.authMW.MustGetUserId(c)
+	err := input.Id.UnhashStr(c.Param("mind_id"))
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
 
-	err := h.mind.UpdateMind(c, input)
+	err = h.mind.UpdateMind(c, input)
 	if err != nil {
 		FailErr(c, err)
 		return

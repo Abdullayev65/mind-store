@@ -1,6 +1,7 @@
 package user
 
 import (
+	"mime/multipart"
 	"mindstore/internal/object/dto"
 	"mindstore/pkg/hash-types"
 	"time"
@@ -25,8 +26,10 @@ type UserUpdate struct {
 	FirstName    *string
 	MiddleName   *string
 	LastName     *string
-	BirthDate    *time.Time `json:"-"`
-	BirthDateStr *string    `json:"birth_date"`
+	Avatar       *multipart.FileHeader
+	AvatarId     *hash.Int
+	BirthDate    *time.Time `json:"-" form:"-"`
+	BirthDateStr *string    `json:"birth_date" form:"birth_date"`
 }
 
 type UserDetail struct {
@@ -37,6 +40,8 @@ type UserDetail struct {
 	FirstName    *string
 	MiddleName   *string
 	LastName     *string
+	AvatarUrl    *string
+	AvatarId     *hash.Int  `json:"-"`
 	BirthDate    *time.Time `json:"-"`
 	BirthDateStr *string    `json:"birth_date"`
 }
