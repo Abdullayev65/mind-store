@@ -9,3 +9,11 @@ type LogIn struct {
 type Token struct {
 	Token string
 }
+
+type Available struct {
+	Type  int
+	Value string
+	//type:
+	//1 = username
+	//2 = email
+}

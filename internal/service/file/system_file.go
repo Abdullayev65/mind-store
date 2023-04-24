@@ -7,6 +7,8 @@ import (
 	"mindstore/internal/object/model"
 	"mindstore/pkg/stream"
 	"os"
+	"path"
+	"strings"
 	"time"
 )
 
@@ -21,16 +23,14 @@ func (s *SystemFile) Upload(file *multipart.FileHeader, folder string) (string, 
 		return "", errors.New("Files.Upload: Files is null")
 	}
 
-	filename := s.makeName(file.Filename)
+	dst := path.Join("./files/", folder, s.makeSubPath(file.Filename))
 
-	if _, err := os.Stat("./files/" + folder); errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll("./files/"+folder, os.ModePerm)
+	if _, err := os.Stat(s.getFolder(dst)); errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(s.getFolder(dst), os.ModePerm)
 		if err != nil {
 			return "", err
 		}
 	}
-
-	dst := "./files/" + folder + "/" + filename
 
 	src, err := file.Open()
 	if err != nil {
@@ -113,7 +113,15 @@ func (s *SystemFile) MultipleUploadFile(files []*multipart.FileHeader, folder st
 	return
 }
 
-func (s *SystemFile) makeName(filename string) string {
-	now := time.Now().Format("06.01.02.15.04.05.")
+func (s *SystemFile) makeSubPath(filename string) string {
+	now := time.Now().Format("06/01/02/15.04.05.")
 	return now + filename
+}
+
+func (s *SystemFile) getFolder(dst string) string {
+	idx := strings.LastIndex(dst, "/")
+	if idx == -1 {
+		return "./"
+	}
+	return dst[:idx]
 }

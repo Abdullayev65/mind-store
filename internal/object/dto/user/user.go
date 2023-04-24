@@ -46,9 +46,24 @@ type UserDetail struct {
 	BirthDateStr *string    `json:"birth_date"`
 }
 
+type UserList struct {
+	Id         hash.Int
+	Username   *string
+	MindId     *hash.Int
+	FirstName  *string
+	MiddleName *string
+	LastName   *string
+}
+
 type Filter struct {
 	dto.Filter
 
 	Username *string
 	Email    *string
+}
+
+type UserSearch struct {
+	Username string
+	Limit    int
+	Offset   int
 }

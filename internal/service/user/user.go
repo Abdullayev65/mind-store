@@ -56,6 +56,9 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 		errStr = "email is not valid"
 	case input.Username != nil && (len(*input.Username) < 3 || len(*input.Username) > 26):
 		errStr = "username length should be between 3 and 26"
+	case s.auth.IsValidUsername(*input.Username) != nil:
+		errStr = s.auth.IsValidUsername(*input.Username).Error()
+
 	case input.Password != nil && (len(*input.Password) < 1 || len(*input.Password) > 30):
 		errStr = "password length should be between 1 and 30"
 	}
@@ -91,4 +94,8 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 
 func (s *Service) Delete(c ctx.Ctx, userId, deletedBy hash.Int) error {
 	return s.user.Delete(c, userId, deletedBy)
+}
+
+func (s *Service) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
+	return s.user.UserSearch(c, input)
 }

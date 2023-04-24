@@ -11,4 +11,5 @@ func Auth(r *gin.RouterGroup) {
 
 	r.POST("sign-up", bind.Binder(h.SignUp))
 	r.POST("log-in", bind.Binder(h.LogIn))
+	r.POST("available", bind.Binder(h.Available))
 }

@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS users
 (
     id          BIGSERIAL PRIMARY KEY,
-    username    VARCHAR(26) UNIQUE      NOT NULL,
-    email       VARCHAR(40) UNIQUE,
+    username    VARCHAR(26)             NOT NULL,
+    email       VARCHAR(40),
     mind_id     BIGINT UNIQUE,
     password    VARCHAR(30)             NOT NULL,
     first_name  VARCHAR(16),
@@ -16,6 +16,12 @@ CREATE TABLE IF NOT EXISTS users
     created_at  TIMESTAMP DEFAULT now() NOT NULL,
     deleted_at  TIMESTAMP
 );
+CREATE UNIQUE INDEX users_username_unique_index
+    ON users (username)
+    WHERE users.deleted_at IS NULL;
+CREATE UNIQUE INDEX users_email_unique_index
+    ON users (email)
+    WHERE users.deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS mind
 (

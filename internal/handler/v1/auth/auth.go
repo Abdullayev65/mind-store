@@ -36,3 +36,13 @@ func (h *Handler) LogIn(c *gin.Context, input *auth.LogIn) {
 
 	Success(c, outPut)
 }
+
+func (h *Handler) Available(c *gin.Context, input *auth.Available) {
+	outPut, err := h.auth.Available(c, input)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, outPut)
+}

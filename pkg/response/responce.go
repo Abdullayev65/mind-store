@@ -12,6 +12,15 @@ func Success(c *gin.Context, res any) {
 	})
 }
 
+func SuccessList(c *gin.Context, res any, count int) {
+	json200(c, map[string]interface{}{
+		"res":       res,
+		"status":    true,
+		"count":     count,
+		"last_page": (count + 9) / 10,
+	})
+}
+
 func Response[T any](c *gin.Context, t T, err error) {
 	if err != nil {
 		FailErr(c, err)

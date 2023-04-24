@@ -16,10 +16,12 @@ type User interface {
 	DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error)
 	Update(c ctx.Ctx, input *user.UserUpdate) error
 	Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error
+	UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error)
 }
 
 type Auth interface {
 	IsValidEmail(email string) bool
+	IsValidUsername(username string) error
 }
 
 type SysFile interface {

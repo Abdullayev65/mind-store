@@ -100,6 +100,25 @@ VALUES ($1, $2, 99) RETURNING id`, "root", id).Scan(&mindId)
 	return hash.Int(id), nil
 }
 
+func (r *Repo) Available(c ctx.Ctx, column, value string) (bool, error) {
+	type Data struct {
+		Count int
+	}
+	d := new(Data)
+
+	err := r.DB.GetContext(c, d, fmt.Sprintf(
+		`SELECT count(id) FROM users WHERE deleted_at IS NULL AND %s=$1`, column), value)
+	if err != nil {
+		return false, err
+	}
+
+	if d.Count == 0 {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("%s is invalid or already taken", column)
+}
+
 func (r *Repo) Update(c ctx.Ctx, input *user.UserUpdate) error {
 	argNum, args, setValues := 1, []any{}, []string{}
 	repoutill.UpdateSetColumn(input.Username, "username", &setValues, &args, &argNum)
@@ -127,6 +146,26 @@ func (r *Repo) GetByUsername(c ctx.Ctx, username string) (*model.User, error) {
 
 func (r *Repo) GetByEmail(c ctx.Ctx, email string) (*model.User, error) {
 	return r.getBy(c, "email", email)
+}
+
+func (r *Repo) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
+	list := make([]*user.UserList, 0, 10)
+	count := new(int)
+
+	err := r.DB.SelectContext(c, &list, `SELECT id, username, mind_id, first_name, middle_name, last_name
+	FROM users WHERE deleted_at IS NULL AND username LIKE $1
+	LIMIT $2 OFFSET $3`, "%"+input.Username+"%", input.Limit, input.Offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.DB.GetContext(c, count, `SELECT count(id)
+FROM users WHERE deleted_at IS NULL AND username LIKE $1`, "%"+input.Username+"%")
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return list, *count, nil
 }
 
 func (r *Repo) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) {

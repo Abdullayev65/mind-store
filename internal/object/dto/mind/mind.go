@@ -30,7 +30,7 @@ type List struct {
 	Caption  *string
 	ParentId *hash.Int
 	Access   int
-	HashedId *int
+	HashedId *hash.Int
 	Files    []file.List
 	Children []List
 }

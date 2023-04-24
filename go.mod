@@ -4,12 +4,12 @@ go 1.20
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-summer-dev/defaultcase v0.0.0-20230415151735-52562d98e2e5
 	github.com/go-summer-dev/json v1.0.2
 	github.com/go-summer-dev/marshaling v0.0.0-20230415145934-7ce33ad50b88
-	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.8
