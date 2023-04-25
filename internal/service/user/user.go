@@ -54,9 +54,7 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 	switch {
 	case input.Email != nil && (!s.auth.IsValidEmail(*input.Email)):
 		errStr = "email is not valid"
-	case input.Username != nil && (len(*input.Username) < 3 || len(*input.Username) > 26):
-		errStr = "username length should be between 3 and 26"
-	case s.auth.IsValidUsername(*input.Username) != nil:
+	case input.Username != nil && s.auth.IsValidUsername(*input.Username) != nil:
 		errStr = s.auth.IsValidUsername(*input.Username).Error()
 
 	case input.Password != nil && (len(*input.Password) < 1 || len(*input.Password) > 30):

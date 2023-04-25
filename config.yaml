@@ -4,7 +4,7 @@ debug_mode: true
 db:
   username: postgres
   password: 1
-  db_name: postgres
+  db_name: mind
   port: 5432
 jwt_token:
   expiring_duration: 12h
