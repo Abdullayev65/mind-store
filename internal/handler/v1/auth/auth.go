@@ -17,6 +17,7 @@ func New(auth *auth_srvc.Service) *Handler {
 }
 
 func (h *Handler) SignUp(c *gin.Context, input *user.UserCreate) {
+	password := input.Password
 
 	err := h.auth.SignUp(c, input)
 	if err != nil {
@@ -24,7 +25,18 @@ func (h *Handler) SignUp(c *gin.Context, input *user.UserCreate) {
 		return
 	}
 
-	Success(c, "user created")
+	login := &auth.LogIn{
+		Identifier: input.Username,
+		Password:   password,
+	}
+
+	outPut, err := h.auth.LogIn(c, login)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, outPut)
 }
 
 func (h *Handler) LogIn(c *gin.Context, input *auth.LogIn) {

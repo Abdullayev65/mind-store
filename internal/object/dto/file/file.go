@@ -30,6 +30,6 @@ type MindFile struct {
 type DeleteMind struct {
 	MindId    hash.Int
 	FileId    hash.Int
-	UserId    hash.Int
-	DeletedBy hash.Int
+	UserId    hash.Int `json:"-" form:"-"`
+	DeletedBy hash.Int `json:"-" form:"-"`
 }

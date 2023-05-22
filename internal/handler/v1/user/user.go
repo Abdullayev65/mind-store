@@ -41,10 +41,11 @@ func (h *Handler) UserUpdate(c *gin.Context, input *user.UserUpdate) {
 	Success(c, "DONE")
 }
 
-func (h *Handler) UserDelete(c *gin.Context) {
-	userId := *h.authMW.MustGetUserId(c)
+func (h *Handler) UserDelete(c *gin.Context, input *user.UserDelete) {
+	input.UserId = *h.authMW.MustGetUserId(c)
+	input.DeletedBy = h.authMW.MustGetUserId(c)
 
-	err := h.user.Delete(c, userId, userId)
+	err := h.user.Delete(c, input)
 	if err != nil {
 		FailErr(c, err)
 		return
@@ -86,4 +87,16 @@ func (h *Handler) UserSearch(c *gin.Context) {
 	}
 
 	SuccessList(c, list, count)
+}
+
+func (h *Handler) UserByUsername(c *gin.Context) {
+	username := c.Param("username")
+
+	output, err := h.user.UserByUsername(c, username)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, output)
 }

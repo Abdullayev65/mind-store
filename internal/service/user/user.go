@@ -90,10 +90,47 @@ func (s *Service) UserUpdate(c ctx.Ctx, input *user.UserUpdate) error {
 	return s.user.Update(c, input)
 }
 
-func (s *Service) Delete(c ctx.Ctx, userId, deletedBy hash.Int) error {
-	return s.user.Delete(c, userId, deletedBy)
+func (s *Service) Delete(c ctx.Ctx, input *user.UserDelete) error {
+	if input.Password == nil {
+		return errors.New("password not given")
+	}
+	uzer, err := s.user.GetById(c, input.UserId)
+	if err != nil {
+		return err
+	}
+
+	if !encoder.ComparePassword(uzer.Password, *input.Password) {
+		return errors.New("password incorrect")
+	}
+
+	return s.user.Delete(c, input.UserId, *input.DeletedBy)
 }
 
 func (s *Service) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
 	return s.user.UserSearch(c, input)
+}
+
+func (s *Service) UserByUsername(c ctx.Ctx, username string) (*user.UserDetail, error) {
+	userModel, err := s.user.GetByUsername(c, username)
+	if err != nil {
+		return nil, err
+	}
+
+	userDetail := new(user.UserDetail)
+
+	userDetail.Id = userModel.Id
+	userDetail.Username = &userModel.Username
+	userDetail.Email = userModel.Email
+	userDetail.MindId = userModel.MindId
+	userDetail.FirstName = userModel.FirstName
+	userDetail.MiddleName = userModel.MiddleName
+	userDetail.LastName = userModel.LastName
+	timeutil.Parse(userDetail.BirthDateStr, &userModel.BirthDate)
+
+	if userModel.AvatarId != nil {
+		url := path.Join(config.GetFilesBaseUrl(), "avatar", userModel.Id.HashToStr())
+		userDetail.AvatarUrl = &url
+	}
+
+	return userDetail, nil
 }

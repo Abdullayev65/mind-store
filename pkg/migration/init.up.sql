@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users
     username    VARCHAR(26)             NOT NULL,
     email       VARCHAR(40)             NOT NULL,
     mind_id     BIGINT UNIQUE,
-    password    VARCHAR(30)             NOT NULL,
+    password    TEXT                    NOT NULL,
     first_name  VARCHAR(16),
     middle_name VARCHAR(16),
     last_name   VARCHAR(20),

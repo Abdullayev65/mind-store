@@ -36,7 +36,7 @@ type UserDetail struct {
 	Id           hash.Int
 	Username     *string
 	Email        *string
-	MindId       *hash.Int
+	MindId       *int
 	FirstName    *string
 	MiddleName   *string
 	LastName     *string
@@ -66,4 +66,10 @@ type UserSearch struct {
 	Username string
 	Limit    int
 	Offset   int
+}
+
+type UserDelete struct {
+	UserId    hash.Int `json:"-" form:"-"`
+	Password  *string
+	DeletedBy *hash.Int `json:"-" form:"-"`
 }

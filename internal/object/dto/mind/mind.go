@@ -32,7 +32,7 @@ type List struct {
 	Access   int
 	HashedId *hash.Int
 	Files    []file.List
-	Children []List
+	SubMinds []List
 }
 
 type ChildrenFilter struct {
