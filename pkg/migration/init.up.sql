@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users
 (
     id          BIGSERIAL PRIMARY KEY,
     username    VARCHAR(26)             NOT NULL,
-    email       VARCHAR(40),
+    email       VARCHAR(40)             NOT NULL,
     mind_id     BIGINT UNIQUE,
     password    VARCHAR(30)             NOT NULL,
     first_name  VARCHAR(16),
@@ -26,16 +26,16 @@ CREATE UNIQUE INDEX users_email_unique_index
 CREATE TABLE IF NOT EXISTS mind
 (
     id         BIGSERIAL PRIMARY KEY,
-    topic      VARCHAR(40) NOT NULL,
+    topic      VARCHAR(40)                  NOT NULL,
     caption    TEXT,
     parent_id  BIGINT REFERENCES mind (id),
-    access     BIGINT      NOT NULL,
+    access     INT                          NOT NULL,
     hashed_id  BIGINT REFERENCES mind (id),
 --
-    created_at TIMESTAMP   NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP   NOT NULL DEFAULT now(),
+    created_at TIMESTAMP                    NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP                    NOT NULL DEFAULT now(),
     deleted_at TIMESTAMP,
-    created_by BIGINT REFERENCES users (id),
+    created_by BIGINT REFERENCES users (id) NOT NULL,
     deleted_by BIGINT REFERENCES users (id)
 );
 
@@ -45,12 +45,12 @@ CREATE TABLE IF NOT EXISTS file
     name       VARCHAR(63)  NOT NULL,
     path       VARCHAR(127) NOT NULL,
     hashed_id  BIGINT REFERENCES mind (id),
-    access     BIGINT       NOT NULL,
+    access     INT          NOT NULL,
     size       BIGINT       NOT NULL,
 --
     created_at TIMESTAMP    NOT NULL DEFAULT now(),
     deleted_at TIMESTAMP,
-    created_by BIGINT REFERENCES users (id),
+    created_by BIGINT       NOT NULL REFERENCES users (id),
     deleted_by BIGINT REFERENCES users (id)
 );
 
@@ -59,8 +59,7 @@ CREATE TABLE IF NOT EXISTS mind_file
     mind_id    BIGINT    NOT NULL REFERENCES mind (id),
     file_id    BIGINT    NOT NULL REFERENCES file (id),
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    deleted_at TIMESTAMP,
-    PRIMARY KEY (mind_id, file_id)
+    deleted_at TIMESTAMP
 );
 CREATE UNIQUE INDEX mind_file_ui__mind_id__file_id ON mind_file
     USING btree (mind_id, file_id) WHERE (deleted_at IS NULL);
