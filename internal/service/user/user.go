@@ -107,6 +107,10 @@ func (s *Service) Delete(c ctx.Ctx, input *user.UserDelete) error {
 }
 
 func (s *Service) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
+	if input.Value == nil {
+		return nil, 0, errors.New("value not given")
+	}
+
 	return s.user.UserSearch(c, input)
 }
 

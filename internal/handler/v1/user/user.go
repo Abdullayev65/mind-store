@@ -56,28 +56,20 @@ func (h *Handler) UserDelete(c *gin.Context, input *user.UserDelete) {
 
 func (h *Handler) UserSearch(c *gin.Context) {
 	input := new(user.UserSearch)
-	input.Username = c.Param("username")
+	err := c.BindQuery(input)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
 	if query, ok := c.GetQuery("page"); ok {
 		i, err := strconv.Atoi(query)
 		if err == nil {
-			input.Limit = 10
+			if input.Limit == 0 {
+				input.Limit = 10
+			}
 			input.Offset = 10 * (i - 1)
 		}
-	}
-	if query, ok := c.GetQuery("limit"); ok {
-		i, err := strconv.Atoi(query)
-		if err == nil {
-			input.Limit = i
-		}
-	}
-	if query, ok := c.GetQuery("offset"); ok {
-		i, err := strconv.Atoi(query)
-		if err == nil {
-			input.Offset = i
-		}
-	}
-	if input.Limit == 0 {
-		input.Limit = 10
 	}
 
 	list, count, err := h.user.UserSearch(c, input)

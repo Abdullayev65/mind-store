@@ -149,18 +149,19 @@ func (r *Repo) GetByEmail(c ctx.Ctx, email string) (*model.User, error) {
 }
 
 func (r *Repo) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
+	//	TODO make it with bun
 	list := make([]*user.UserList, 0, 10)
 	count := new(int)
 
 	err := r.DB.SelectContext(c, &list, `SELECT id, username, mind_id, first_name, middle_name, last_name
 	FROM users WHERE deleted_at IS NULL AND username LIKE $1
-	LIMIT $2 OFFSET $3`, "%"+input.Username+"%", input.Limit, input.Offset)
+	LIMIT $2 OFFSET $3`, "%"+*input.Username+"%", input.Limit, input.Offset)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	err = r.DB.GetContext(c, count, `SELECT count(id)
-FROM users WHERE deleted_at IS NULL AND username LIKE $1`, "%"+input.Username+"%")
+FROM users WHERE deleted_at IS NULL AND username LIKE $1`, "%"+*input.Username+"%")
 	if err != nil {
 		return nil, 0, err
 	}
