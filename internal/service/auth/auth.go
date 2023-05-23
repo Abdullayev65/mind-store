@@ -71,7 +71,7 @@ func (s *Service) SignUp(c ctx.Ctx, input *user.UserCreate) error {
 	return err
 }
 
-func (s *Service) LogIn(c ctx.Ctx, data *auth.LogIn) (*auth.Token, error) {
+func (s *Service) LogIn(c ctx.Ctx, data *auth.LogIn) (*auth.LoginRes, error) {
 	if data.Identifier == nil || data.Password == nil {
 		return nil, errors.New("identifier and password is required")
 	}
@@ -87,12 +87,20 @@ func (s *Service) LogIn(c ctx.Ctx, data *auth.LogIn) (*auth.Token, error) {
 		return nil, err
 	}
 
+	if !encoder.ComparePassword(m.Password, *data.Password) {
+		return nil, errors.New("login or password wrong")
+	}
+
 	token, err := s.GenerateToken(m.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return token, nil
+	loginRes := new(auth.LoginRes)
+	loginRes.Token = token
+	loginRes.User, err = s.User.DetailById(c, &m.Id)
+
+	return loginRes, nil
 }
 
 func (s *Service) Available(c ctx.Ctx, input *auth.Available) (bool, error) {
@@ -146,7 +154,7 @@ func (s *Service) IsValidUsername(username string) error {
 	return nil
 }
 
-func (s *Service) GenerateToken(id hash.Int) (*auth.Token, error) {
+func (s *Service) GenerateToken(id hash.Int) (string, error) {
 	claims := &Claims{
 		ID: &id,
 		StandardClaims: jwt.StandardClaims{
@@ -158,13 +166,10 @@ func (s *Service) GenerateToken(id hash.Int) (*auth.Token, error) {
 		SignedString(s.jwtKey)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	token := new(auth.Token)
-	token.Token = tokenString
-
-	return token, nil
+	return tokenString, nil
 }
 
 func (s *Service) UserIdFromToken(tokenStr string) (*hash.Int, error) {

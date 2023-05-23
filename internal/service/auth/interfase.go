@@ -14,4 +14,5 @@ type User interface {
 	Create(ctx.Ctx, *user.UserCreate) (*model.User, error)
 	CreateWithMind(c ctx.Ctx, input *user.UserCreate) (hash.Int, error)
 	Available(c ctx.Ctx, column, value string) (bool, error)
+	DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error)
 }

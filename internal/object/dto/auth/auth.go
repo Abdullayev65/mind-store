@@ -1,13 +1,16 @@
 package auth
 
+import "mindstore/internal/object/dto/user"
+
 type LogIn struct {
 	Identifier *string
 	Password   *string
 	//identifier = email or username
 }
 
-type Token struct {
+type LoginRes struct {
 	Token string
+	User  *user.UserDetail
 }
 
 type Available struct {
