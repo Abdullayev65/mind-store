@@ -133,22 +133,26 @@ func (s *Service) IsValidEmail(email string) bool {
 }
 
 func (s *Service) IsValidUsername(username string) error {
-	if len(username) < 3 || len(username) > 26 {
-		return errors.New("username length should be between 3 and 26")
+	if len(username) < 1 {
+		return errors.New("username can not be blank")
+	}
+	if len(username) > 26 {
+		return errors.New("username length should be less than 26")
 	}
 	index := strings.IndexFunc(username, func(r rune) bool {
 		switch {
 		default:
 			return true
-		case 'A' >= r && r >= 'Z':
-		case 'a' >= r && r >= 'z':
-		case '0' >= r && r >= '9':
-		case r == '.' || r == '_':
+		case 'A' <= r && r <= 'Z':
+		case 'a' <= r && r <= 'z':
+		case '0' <= r && r <= '9':
+		case r == '_':
 		}
 		return false
 	})
-	if index != 0 {
-		return fmt.Errorf("email should not conatein %c", username[index])
+
+	if index != -1 {
+		return fmt.Errorf("username should not conatein `%c`", username[index])
 	}
 
 	return nil

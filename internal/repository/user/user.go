@@ -10,6 +10,7 @@ import (
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/repoutill"
+	"strconv"
 	"strings"
 )
 
@@ -148,20 +149,82 @@ func (r *Repo) GetByEmail(c ctx.Ctx, email string) (*model.User, error) {
 	return r.getBy(c, "email", email)
 }
 
-func (r *Repo) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
-	//	TODO make it with bun
-	list := make([]*user.UserList, 0, 10)
+func (r *Repo) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserDetail, int, error) {
+	argNum, args, queries := 1, make([]any, 0, 3), make([]string, 0, 3)
+
+	queries = append(queries, `FROM users WHERE deleted_at IS NULL AND (`)
+	{
+		if input.Username != nil {
+			queries = append(queries, "username ilike $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.Username+"%")
+			argNum++
+		}
+		if input.Email != nil {
+			if argNum != 1 {
+				queries = append(queries, "or")
+			}
+			queries = append(queries, "email ilike $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.Email+"%")
+			argNum++
+		}
+		if input.FirstName != nil {
+			if argNum != 1 {
+				queries = append(queries, "or")
+			}
+			queries = append(queries, "first_name ilike $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.FirstName+"%")
+			argNum++
+		}
+		if input.MiddleName != nil {
+			if argNum != 1 {
+				queries = append(queries, "or")
+			}
+			queries = append(queries, "middle_name ilike $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.MiddleName+"%")
+			argNum++
+		}
+		if input.LastName != nil {
+			if argNum != 1 {
+				queries = append(queries, "or")
+			}
+			queries = append(queries, "last_name ilike $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.LastName+"%")
+			argNum++
+		}
+		if input.FullName != nil {
+			if argNum != 1 {
+				queries = append(queries, "or")
+			}
+			queries = append(queries, "CONCAT_WS(' ', first_name, middle_name, last_name) ILIKE $"+strconv.Itoa(argNum))
+			args = append(args, "%"+*input.FullName+"%")
+			argNum++
+		}
+
+		//	agar filter bolmasa qavislarorasi bosh qolmasili uchun true yozilgan
+		if argNum == 1 {
+			queries = append(queries, "true")
+		}
+	}
+	queries = append(queries, `)`)
+
+	limitOffset := fmt.Sprintf(" LIMIT %d OFFSET %d", input.Limit, input.Offset)
+	query := strings.Join(queries, " ")
+
+	list := make([]*user.UserDetail, 0, 10)
 	count := new(int)
 
-	err := r.DB.SelectContext(c, &list, `SELECT id, username, mind_id, first_name, middle_name, last_name
-	FROM users WHERE deleted_at IS NULL AND username LIKE $1
-	LIMIT $2 OFFSET $3`, "%"+*input.Username+"%", input.Limit, input.Offset)
+	err := r.DB.SelectContext(c, &list, `SELECT id, username, email, mind_id, first_name, 
+middle_name, last_name, birth_date, avatar_id `+query+" Order by "+input.OrderBy+limitOffset,
+		args...)
+	println(`SELECT id, username, email, mind_id, first_name, 
+middle_name, last_name, birth_date, avatar_id ` + query + limitOffset)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	err = r.DB.GetContext(c, count, `SELECT count(id)
-FROM users WHERE deleted_at IS NULL AND username LIKE $1`, "%"+*input.Username+"%")
+	err = r.DB.GetContext(c, count, `SELECT count(id)`+query,
+		args...)
+	println(`SELECT count(id)` + query)
 	if err != nil {
 		return nil, 0, err
 	}

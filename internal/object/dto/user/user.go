@@ -63,16 +63,16 @@ type Filter struct {
 }
 
 type UserSearch struct {
-	Value      *string
-	Username   *string
-	Topic      *string
-	FullName   *string
-	Email      *string
-	FirstName  *string
-	MiddleName *string
-	LastName   *string
-	Limit      int
-	Offset     int
+	Username        *string
+	FullName        *string
+	Email           *string
+	FirstName       *string
+	MiddleName      *string
+	LastName        *string
+	OrderBy         string
+	DescendingOrder bool
+	Limit           int
+	Offset          int
 }
 
 type UserDelete struct {

@@ -25,6 +25,14 @@ func Binder[In any](handler func(*gin.Context, *In)) gin.HandlerFunc {
 	}
 }
 
+func BindQuery(c *gin.Context, obj any) error {
+	values := c.Request.URL.Query()
+	if err := binding.MapForm(obj, values); err != nil {
+		return err
+	}
+	return binding.Validate(obj)
+}
+
 //func MustGet[In any](c *gin.Context) *In {
 //	in, err := Get[In](c)
 //	if err != nil {

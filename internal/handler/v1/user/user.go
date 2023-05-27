@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mindstore/internal/object/dto/user"
 	user_srvc "mindstore/internal/service/user"
+	"mindstore/pkg/bind"
 	. "mindstore/pkg/response"
 	"strconv"
 )
@@ -56,18 +57,18 @@ func (h *Handler) UserDelete(c *gin.Context, input *user.UserDelete) {
 
 func (h *Handler) UserSearch(c *gin.Context) {
 	input := new(user.UserSearch)
-	err := c.BindQuery(input)
+	err := bind.BindQuery(c, input)
 	if err != nil {
 		FailErr(c, err)
 		return
 	}
 
+	if input.Limit == 0 {
+		input.Limit = 10
+	}
 	if query, ok := c.GetQuery("page"); ok {
 		i, err := strconv.Atoi(query)
 		if err == nil {
-			if input.Limit == 0 {
-				input.Limit = 10
-			}
 			input.Offset = 10 * (i - 1)
 		}
 	}

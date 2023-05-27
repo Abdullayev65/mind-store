@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mindstore/internal/object/dto/user"
 	"mindstore/internal/object/model"
+	"mindstore/internal/tools/url_tool"
 	"mindstore/pkg/config"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/encoder"
@@ -42,8 +43,7 @@ func (s *Service) DetailById(c ctx.Ctx, id *hash.Int) (*user.UserDetail, error) 
 
 	timeutil.Format(obj.BirthDate, &obj.BirthDateStr)
 	if obj.AvatarId != nil {
-		url := path.Join(config.GetFilesBaseUrl(), "avatar", obj.Id.HashToStr())
-		obj.AvatarUrl = &url
+		obj.AvatarUrl = url_tool.AvatarUrlWithHash(obj.Id)
 	}
 
 	return obj, nil
@@ -106,12 +106,36 @@ func (s *Service) Delete(c ctx.Ctx, input *user.UserDelete) error {
 	return s.user.Delete(c, input.UserId, *input.DeletedBy)
 }
 
-func (s *Service) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserList, int, error) {
-	if input.Value == nil {
-		return nil, 0, errors.New("value not given")
+func (s *Service) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserDetail, int, error) {
+	switch input.OrderBy {
+	case "username":
+	case "email":
+	case "first_name":
+	case "middle_name":
+	case "last_name":
+	case "id":
+	default:
+		input.OrderBy = ""
+	}
+	if input.OrderBy == "" {
+		input.OrderBy = "id"
+	}
+	if input.DescendingOrder {
+		input.OrderBy += " DESC"
 	}
 
-	return s.user.UserSearch(c, input)
+	details, count, err := s.user.UserSearch(c, input)
+	if err != nil {
+		return nil, count, err
+	}
+	for _, d := range details {
+		timeutil.Format(d.BirthDate, &d.BirthDateStr)
+		if d.AvatarId != nil {
+			d.AvatarUrl = url_tool.AvatarUrlWithHash(d.Id)
+		}
+	}
+
+	return details, count, nil
 }
 
 func (s *Service) UserByUsername(c ctx.Ctx, username string) (*user.UserDetail, error) {
