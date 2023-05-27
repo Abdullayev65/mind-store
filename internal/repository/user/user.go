@@ -216,15 +216,12 @@ func (r *Repo) UserSearch(c ctx.Ctx, input *user.UserSearch) ([]*user.UserDetail
 	err := r.DB.SelectContext(c, &list, `SELECT id, username, email, mind_id, first_name, 
 middle_name, last_name, birth_date, avatar_id `+query+" Order by "+input.OrderBy+limitOffset,
 		args...)
-	println(`SELECT id, username, email, mind_id, first_name, 
-middle_name, last_name, birth_date, avatar_id ` + query + limitOffset)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	err = r.DB.GetContext(c, count, `SELECT count(id)`+query,
 		args...)
-	println(`SELECT count(id)` + query)
 	if err != nil {
 		return nil, 0, err
 	}
