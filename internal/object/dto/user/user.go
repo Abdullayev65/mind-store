@@ -36,7 +36,7 @@ type UserDetail struct {
 	Id           hash.Int
 	Username     *string
 	Email        *string
-	MindId       *int
+	MindId       *hash.Int
 	FirstName    *string
 	MiddleName   *string
 	LastName     *string

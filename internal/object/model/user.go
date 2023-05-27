@@ -9,7 +9,7 @@ type User struct {
 	Id         hash.Int
 	Username   string
 	Email      *string
-	MindId     *int
+	MindId     *hash.Int
 	Password   string
 	FirstName  *string
 	MiddleName *string
