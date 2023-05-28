@@ -70,7 +70,7 @@ func (r *Repo) ChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter, getOwnSelf b
 
 	err := r.DB.SelectContext(c, &list,
 		fmt.Sprintf(`SELECT id, topic, caption, parent_id, access, hashed_id FROM mind 
-WHERE parent_id=$1 %s AND (created_by=$2 OR access = 99)`, whereOwn), filter.MindId, createdBy)
+WHERE parent_id=$1 %s AND (created_by=$2 OR access = 99) ORDER BY id`, whereOwn), filter.MindId, createdBy)
 
 	if err != nil {
 		return nil, err
