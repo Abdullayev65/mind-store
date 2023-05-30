@@ -156,7 +156,7 @@ func (s *Service) UserByUsername(c ctx.Ctx, username string) (*user.UserDetail, 
 	timeutil.Parse(userDetail.BirthDateStr, &userModel.BirthDate)
 
 	if userModel.AvatarId != nil {
-		url := path.Join(config.GetFilesBaseUrl(), "avatar", userModel.Id.HashToStr())
+		url := config.GetFilesUrlWith(path.Join("avatar", userModel.Id.HashToStr()))
 		userDetail.AvatarUrl = &url
 	}
 

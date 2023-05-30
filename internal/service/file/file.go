@@ -8,7 +8,6 @@ import (
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/stream"
-	"path/filepath"
 )
 
 type Service struct {
@@ -68,11 +67,11 @@ func (s *Service) GetByMindIds(c ctx.Ctx, mindIds []hash.Int) (map[hash.Int][]fi
 	}
 
 	stream.ForEach(fileList, func(f file.List) {
-		f.Url = filepath.Join(config.GetFilesBaseUrl(), f.Id.HashToStr())
+		f.Url = config.GetFilesUrlWith(f.Id.HashToStr())
 	})
 
 	fileMap := stream.SliceToMap(fileList, func(f file.List) hash.Int {
-		f.Url = filepath.Join(config.GetFilesBaseUrl(), f.Id.HashToStr())
+		f.Url = config.GetFilesUrlWith(f.Id.HashToStr())
 		return f.MindId
 	})
 

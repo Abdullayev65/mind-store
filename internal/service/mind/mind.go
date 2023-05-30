@@ -7,7 +7,6 @@ import (
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/stream"
-	"path"
 )
 
 type Service struct {
@@ -102,7 +101,7 @@ func (s *Service) setFilesToMinds(c ctx.Ctx, mindList []mind.List) error {
 
 	for _, files := range fileMap {
 		for i, _ := range files {
-			files[i].Url = path.Join(config.GetFilesBaseUrl(), files[i].Id.HashToStr())
+			files[i].Url = config.GetFilesUrlWith(files[i].Id.HashToStr())
 		}
 	}
 

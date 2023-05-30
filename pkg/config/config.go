@@ -3,8 +3,9 @@ package config
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"net/url"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -47,8 +48,17 @@ func GetPort() string {
 	return ":" + port
 }
 
-func GetFilesBaseUrl() string {
-	return filepath.Join(config.BaseUrl, "/api/v1/file/")
+func GetFilesBaseUrl() *url.URL {
+	url, _ := url.Parse(config.BaseUrl + "/api/v1/file/")
+
+	return url
+}
+func GetFilesUrlWith(suffixUrl string) string {
+	url := GetFilesBaseUrl()
+
+	url.Path = path.Join(url.Path, suffixUrl)
+
+	return url.String()
 }
 
 func unmarshalConfig() (*Config, error) {

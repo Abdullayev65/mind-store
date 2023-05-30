@@ -7,6 +7,6 @@ import (
 )
 
 func AvatarUrlWithHash(userId hash.Int) *string {
-	url := path.Join(config.GetFilesBaseUrl(), "avatar", userId.HashToStr())
+	url := config.GetFilesUrlWith(path.Join("avatar", userId.HashToStr()))
 	return &url
 }
