@@ -45,6 +45,7 @@ func (s *Service) CreateWithMind(c ctx.Ctx, input *file.CreateWithMind) ([]*file
 	stream.ForEach(files, func(f *model.FileData) {
 		f.CreatedBy = *input.CreatedBy
 		f.Access = input.Access
+		f.HashedId = input.HashedId
 	})
 
 	err = s.iFile.CreateWithMind(c, files, *input.MindId)

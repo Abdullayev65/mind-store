@@ -10,7 +10,7 @@ type List struct {
 	MindId   hash.Int `json:",omitempty"`
 	Url      string
 	Name     string
-	HashedId *int
+	HashedId *hash.Int
 	Access   int
 	Size     int64
 }
@@ -20,6 +20,7 @@ type CreateWithMind struct {
 	CreatedBy *hash.Int `form:"-"`
 	MindId    *hash.Int
 	Access    int
+	HashedId  *hash.Int
 }
 
 type MindFile struct {

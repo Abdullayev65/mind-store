@@ -20,8 +20,7 @@ func Mind(r *gin.RouterGroup) {
 		h.GetMindChildren("mind_id", true))
 
 	r.POST("/add-file", mw.UserIdFromToken(true), bind.Binder(h.AddFile))
-	r.DELETE("/delete-file", mw.UserIdFromToken(true), bind.Binder(h.DeleteFile))
-
+	r.DELETE("/delete-file/:mind_id/:file_id", mw.UserIdFromToken(true), h.DeleteFile)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

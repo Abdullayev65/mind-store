@@ -94,7 +94,17 @@ func (h *Handler) AddFile(c *gin.Context, input *file.CreateWithMind) {
 	Success(c, dto)
 }
 
-func (h *Handler) DeleteFile(c *gin.Context, input *file.DeleteMind) {
+func (h *Handler) DeleteFile(c *gin.Context) {
+	input := new(file.DeleteMind)
+	if err := input.MindId.UnhashStr(c.Param("mind_id")); err != nil {
+		FailErr(c, err)
+		return
+	}
+	if err := input.FileId.UnhashStr(c.Param("file_id")); err != nil {
+		FailErr(c, err)
+		return
+	}
+
 	if input.FileId == 0 || input.MindId == 0 {
 		Fail(c, "file_id and mind_id is required")
 		return
