@@ -70,7 +70,7 @@ func (r *Repo) ChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter, getOwnSelf b
 
 	err := r.DB.SelectContext(c, &list,
 		fmt.Sprintf(`SELECT id, topic, caption, parent_id, access, hashed_id FROM mind 
-WHERE parent_id=$1 %s AND (created_by=$2 OR access = 99) ORDER BY id`, whereOwn), filter.MindId, createdBy)
+WHERE deleted_at IS NULL AND parent_id=$1 %s AND (created_by=$2 OR access = 99) ORDER BY id`, whereOwn), filter.MindId, createdBy)
 
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ WHERE parent_id=$1 %s AND (created_by=$2 OR access = 99) ORDER BY id`, whereOwn)
 
 func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {
 	_, err := r.DB.ExecContext(c, `UPDATE users SET deleted_at = now(), deleted_by = $1
-	 WHERE id = $2`, deletedBy, userId)
+	 WHERE id = $2 AND deleted_at IS NULL`, deletedBy, userId)
 	if err != nil {
 		return err
 	}
