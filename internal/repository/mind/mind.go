@@ -79,14 +79,14 @@ WHERE deleted_at IS NULL AND parent_id=$1 %s AND (created_by=$2 OR access = 99) 
 	return list, nil
 }
 
-func (r *Repo) Delete(c ctx.Ctx, userId hash.Int, deletedBy hash.Int) error {
-	_, err := r.DB.ExecContext(c, `UPDATE users SET deleted_at = now(), deleted_by = $1
-	 WHERE id = $2 AND deleted_at IS NULL`, deletedBy, userId)
+func (r *Repo) Delete(c ctx.Ctx, input *mind.Delete) error {
+	_, err := r.DB.ExecContext(c, `UPDATE mind SET deleted_at = now(), deleted_by = $1
+	 WHERE id = $2 AND created_by = $3 AND deleted_at IS NULL `, input.DeleteBy, input.Id, input.CreatedBy)
 	if err != nil {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 //func (r *Repo) filter(f *user.Filter) (*[]model.user, *bun.SelectQuery) {

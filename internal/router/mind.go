@@ -10,8 +10,9 @@ func Mind(r *gin.RouterGroup) {
 	h := handler.Mind
 	mw := handler.MW
 
-	r.POST("/", mw.UserIdFromToken(true), bind.Binder(h.CreateMind))
+	r.POST("", mw.UserIdFromToken(true), bind.Binder(h.CreateMind))
 	r.PUT("/:mind_id", mw.UserIdFromToken(true), bind.Binder(h.UpdateMind))
+	r.DELETE("/:mind_id", mw.UserIdFromToken(true), h.DeleteMind)
 
 	r.GET("/sub-minds/:parent_mind_id", mw.UserIdFromToken(false),
 		h.GetMindChildren("parent_mind_id", false))

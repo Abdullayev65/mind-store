@@ -78,6 +78,25 @@ func (h *Handler) GetMindChildren(paramParentMindId string, getOwn bool) gin.Han
 	}
 }
 
+func (h *Handler) DeleteMind(c *gin.Context) {
+	input := new(mind.Delete)
+	input.DeleteBy = *h.authMW.MustGetUserId(c)
+	input.CreatedBy = input.DeleteBy
+	err := input.Id.UnhashStr(c.Param("mind_id"))
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	err = h.mind.Delete(c, input)
+	if err != nil {
+		FailErr(c, err)
+		return
+	}
+
+	Success(c, "DELETED")
+}
+
 func (h *Handler) AddFile(c *gin.Context, input *file.CreateWithMind) {
 	if input.MindId == nil {
 		Fail(c, "mind_id not found")

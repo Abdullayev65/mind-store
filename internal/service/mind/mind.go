@@ -54,6 +54,10 @@ func (s *Service) UpdateMind(c ctx.Ctx, input *mind.Update) error {
 	return s.mind.Update(c, input)
 }
 
+func (s *Service) Delete(c ctx.Ctx, input *mind.Delete) error {
+	return s.mind.Delete(c, input)
+}
+
 func (s *Service) ChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter) ([]mind.List, error) {
 	mindList, err := s.mind.ChildrenById(c, filter, false)
 	if err != nil {

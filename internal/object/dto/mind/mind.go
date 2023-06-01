@@ -35,6 +35,12 @@ type List struct {
 	SubMinds []List
 }
 
+type Delete struct {
+	Id        hash.Int
+	DeleteBy  hash.Int
+	CreatedBy hash.Int
+}
+
 type ChildrenFilter struct {
 	MindId hash.Int
 	UserId *hash.Int
