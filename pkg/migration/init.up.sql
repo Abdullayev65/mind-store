@@ -26,7 +26,7 @@ CREATE UNIQUE INDEX users_email_unique_index
 CREATE TABLE IF NOT EXISTS mind
 (
     id         BIGSERIAL PRIMARY KEY,
-    topic      VARCHAR(63)                  NOT NULL,
+    topic      TEXT                  NOT NULL,
     caption    TEXT,
     parent_id  BIGINT REFERENCES mind (id),
     access     INT                          NOT NULL,
