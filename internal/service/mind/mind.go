@@ -32,8 +32,17 @@ func (s *Service) CreateMind(c ctx.Ctx, input *mind.Create) (*hash.Int, error) {
 		return nil, errors.New(errStr)
 	}
 
+	parentMind, err := s.mind.GetById(c, input.ParentId.Int())
+	if err != nil {
+		return nil, errors.New("parent mind not found")
+	}
+
+	if parentMind.CreatedBy != *input.CreatedBy {
+		return nil, errors.New("permission denied")
+	}
+
 	if input.Access != 33 && input.Access != 99 {
-		input.Access = 99
+		input.Access = parentMind.Access
 	}
 
 	return s.mind.Create(c, input)

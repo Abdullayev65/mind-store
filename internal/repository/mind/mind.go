@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"mindstore/internal/object/dto/mind"
+	"mindstore/internal/object/model"
 	"mindstore/pkg/ctx"
 	"mindstore/pkg/hash-types"
 	"mindstore/pkg/repoutill"
@@ -87,6 +88,20 @@ func (r *Repo) Delete(c ctx.Ctx, input *mind.Delete) error {
 	}
 
 	return nil
+}
+
+func (r *Repo) GetById(c ctx.Ctx, id int) (*model.Mind, error) {
+	m := new(model.Mind)
+
+	err := r.DB.GetContext(c, m,
+		`SELECT id, parent_id, access, hashed_id, created_by FROM mind 
+WHERE deleted_at IS NULL AND id = $1`, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
 
 //func (r *Repo) filter(f *user.Filter) (*[]model.user, *bun.SelectQuery) {
