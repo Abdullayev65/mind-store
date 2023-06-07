@@ -97,6 +97,11 @@ func (s *Service) WithChildrenById(c ctx.Ctx, filter *mind.ChildrenFilter) (*min
 			children = append(children, list)
 		}
 	})
+
+	if root == nil {
+		return nil, errors.New("mind not found")
+	}
+
 	root.SubMinds = children
 
 	return root, nil
