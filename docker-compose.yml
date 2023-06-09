@@ -1,0 +1,6 @@
+version: '1'
+
+services:
+  mind_back:
+    build: "."
+    network_mode: host

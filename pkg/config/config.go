@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"mindstore/pkg/hash-types"
 	"net/url"
 	"os"
 	"path"
@@ -12,11 +13,12 @@ import (
 var config = new(Config)
 
 type Config struct {
-	BaseUrl   string    `yaml:"base_url"`
-	Port      string    `yaml:"port"`
-	DebugMode bool      `yaml:"debug_mode"`
-	DB        *DB       `yaml:"db"`
-	JwtToken  *JwtToken `yaml:"jwt_token"`
+	BaseUrl    string    `yaml:"base_url"`
+	Port       string    `yaml:"port"`
+	DebugMode  bool      `yaml:"debug_mode"`
+	DB         *DB       `yaml:"db"`
+	JwtToken   *JwtToken `yaml:"jwt_token"`
+	hashIdSalt string    `yaml:"hash_id_salt"`
 }
 
 func (cnfg *Config) GetPort() string {
@@ -79,6 +81,10 @@ func unmarshalConfig() (*Config, error) {
 func init() {
 	c, err := unmarshalConfig()
 	if err != nil {
+		panic(err)
+	}
+
+	if err = hash.SetSalt(c.hashIdSalt); err != nil {
 		panic(err)
 	}
 

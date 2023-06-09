@@ -11,3 +11,4 @@ db:
 jwt_token:
   expiring_duration: 12h
   secrete_key: "secrete_key"
+hash_id_salt: "hash_id_salt"
