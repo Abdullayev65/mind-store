@@ -1,4 +1,4 @@
-_base_url: https://mind-store.jprq.live
+#base_url: https://mind-store.jprq.live
 base_url: http://localhost:8765
 
 port: 8765
